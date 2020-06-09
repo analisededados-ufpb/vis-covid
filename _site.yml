@@ -1,0 +1,12 @@
+name: CS631 Labs
+output_dir: '.'
+navbar:
+  title: vis-covid
+  left:
+  - text: Home
+    href: index.html
+  - text: Classroom
+    href: https://classroom.google.com/c/MTA5NzExMDYxMDQw
+output:
+  html_document:
+    theme: flatly

@@ -1,0 +1,19 @@
+---
+title: "Análise e Visualização de Dados da COVID-19"
+subtitle: "Minicurso - DCX / CCAE / UFPB - 2020.4"
+author: "Prof. Marcus Carvalho e Prof. Raquel Lopes"
+output:
+  html_document:
+    theme: flatly
+    toc: TRUE
+    toc_float: TRUE
+    toc_depth: 2
+---
+
+******
+
+## Semana 1
+
+- [Slides 1: Introdução à visualização de dados](slides/01-introducao-vis.html)
+
+- [Lab 1: Instalando o R e criando o primeiro plot](labs/00-instalacao_r.html)

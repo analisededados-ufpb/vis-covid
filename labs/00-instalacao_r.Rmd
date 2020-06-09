@@ -1,0 +1,221 @@
+---
+title: 'Instalando o R e criando o primeiro plot'
+author: "Marcus Carvalho (adaptado de Alison Hill)"
+output:
+  html_document:
+    theme: flatly
+    toc: TRUE
+    toc_float: TRUE
+    toc_depth: 2
+    number_sections: TRUE
+    df_print: paged
+---
+
+```{r setup, include = FALSE, cache = FALSE}
+knitr::opts_chunk$set(error = TRUE, comment = NA, warnings = FALSE, errors = FALSE, messages = FALSE)
+```
+
+```{r load-packages, include = FALSE}
+library(knitr)
+library(tidyverse)
+```
+
+> Este documento foi traduzido e adaptado do curso [Principles & Practice of Data Visualization](https://github.com/apreshill/data-vis-labs-2018). A licença CC BY-NC 4.0 pode ser lida [aqui](https://github.com/apreshill/data-vis-labs-2018/blob/master/LICENSE.md). Copyright © Alison Presmanes Hill.
+
+> Note que você deve realizar uma atividade ao fim do tutorial
+
+# Visão geral
+
+Este guia vai ajudar você nos passos para instalar e usar o [R, um ambiente de software gratuito e de código aberto para computação estatística e gráficos.](https://www.r-project.org)
+
+O que é o R?
+
+* **R** é o nome de uma linguagem de programação, baseada na linguagem **S** da Bell Labs, que usuários acessam através de um interpretador de linha de comando (`>`)
+
+O que é RStudio?
+
+* **RStudio** é uma interface gráfica poderosa e conveniente que permite a você acessar a linguagem de programaçõ R com muitas outras facilidades
+
+O objetivo do tutorial é que você tenha uma tela como esta no final:
+
+![](images/00_final-screenshot.png)
+
+# Instalando o R
+
+Instale o R a partir do site oficial [CRAN, the Comprehensive R Archive Network](https://cran.rstudio.com). Escolha um binário adequado para o seu sistema operacional. Você também pode pesquisar como instalar o R com bibliotecas Linux (`apt-get`) ou Mac OS (`Homebrew`).
+
+* Se precisar de mais ajuda, você pode ver os videos abaixo (cortesia de Roger Peng da Johns Hopkins Biostatistics):
+    - [Instalando R no Mac](https://www.youtube.com/watch?v=Icawuhf0Yqo&feature=youtu.be)
+    - [Instalando R no Windows](https://www.youtube.com/watch?v=mfGFv-iB724&feature=youtu.be)
+* Se precisar de mais ajuda para instalar no Windows, veja esse [passo a passo](https://beckmw.files.wordpress.com/2014/09/r_install_guide.pdf).
+
+
+## Checando a instalação do R
+
+Rode o R. Você deve ver um console com um interpretador de linha de comando (`>`). Teste uma operação matemática básica, dê enter e veja se obtém o resultado esperado:
+
+```{r}
+2 + 2
+```
+
+Depois, pode fechar o R.
+
+
+# Instalando o RStudio
+
+Instale a versão gratuita e de código aberto do RStudio: http://www.rstudio.com/products/rstudio/download/
+
+O RStudio provê uma poderosa interface para o R, chamada de "ambiente de desenvolvimento integrado". O RStudio inclui:
+
+* um console (a interface de linha de comando padrão `>`)
+* um editor de código com suporte para execução direta, e
+* ferramentas para plotar gráficos, histórico, debugging e gerência de área de trabalho
+
+
+## Checando a instalação do RStudio
+
+Abra o RStudio. Você deve obter uma janela similar a tela que você vê [aqui](https://www.rstudio.com/wp-content/uploads/2014/04/rstudio-workbench.png), mas a sua estará vazia. Olhe para o painel na parte de baixo do lado esquerdo: é a mesma janela de console que você viu quando abriu o R no passo anterior.
+
+* Clique com o mouse onde você vê o console `>` e digite `x <- 2 + 2`, aperte `Enter`, digite `x` e depois aperte `Enter` novamente.
+* Se apareceu `[1] 4` na sua tela, você instalou com sucesso o R e o RStudio e agora pode passar para a instalação dos pacotes.
+
+
+# Instalando pacotes
+
+A versão do R que você fez download é considerada _R base_, que provê bons poderes de computação estatística e gráficos, mas de forma básica. Para ter super poderes analíticos e gráficos, você precisa de pacotes adicionais, feitos por usuários, para expandir as capacidades do seu R. Os pacotes geralmente estão disponíveis em dois lugares:
+
+* Eles podem ser cuidadosamente validado pelo CRAN (que envolve um processo detalhado de submissão e revisão), e portanto podem ser facilmente instalados com o comando `install.packages("nome_do_pacote", dependencies = TRUE)`.
+* Alternativamente, eles podem estar disponíveis no Github. Para instalar esses pacotes, primeiro você precisa instalar o pacote `devtools`.
+
+```{r devtools, eval = FALSE}
+install.packages("devtools")
+library(devtools)
+install_github("nome_do_pacote")
+```
+
+Coloque seu cursor no console novamente (onde você digitou `x` da última vez e apareceu `[1] 4` na tela). Você pode usar o primeiro método para instalar os seguintes pacotes diretamente do CRAN, que serão usados por nós:
+
+  * [`dplyr`,](http://dplyr.tidyverse.org)
+  * [`ggplot2`,](http://ggplot2.tidyverse.org)
+
+Você também pode baixar todos ao mesmo tempo:
+
+```{r c_install, eval = FALSE}
+install.packages(c("dplyr", "ggplot2"), dependencies = TRUE)
+```
+
+<p class="text-info"> __Atenção:__ No passo anterior nós usamos um comando de combinação, [`c()`](http://stat.ethz.ch/R-manual/R-patched/library/base/html/c.html). Você irá usá-lo com muita frequência -- sempre que quiser combinar coisas em um vetor.</p>
+
+```{r c_demo}
+c("ola", "meu", "nome", "é", "marcus")
+c(1:3, 20, 50)
+```
+
+Cuidado com o uso de aspas ao lidar com pacotes.
+
+* Para *instalar* um pacote, coloque o nome do pacote entre aspas como em `install.packages("nome_do_pacote")`.
+* Para *usar* um pacote já instalado, você deve carregá-lo primeiro, como em `library(nome_do_pacote)`, com o nome do pacote sem aspas. Você só precisa carregar uma vez em uma sessão do RStudio.
+* Se você quiser *ajuda*, não precisa usar aspas: `help(nome_do_pacote)` or `?nome_do_pacote`.
+
+```{r show_dplyr, eval = F}
+install.packages("dplyr", dependencies = TRUE)
+library(dplyr)
+help("dplyr")
+```
+
+<p class="text-info"> __Atenção:__ R é **case-sensitive**, então `?dplyr` funciona, mas `?Dplyr` não. Da mesma forma, a variável chamada `A` é diferente de `a`.</p>
+
+# Faça um plot
+
+Abra um novo script R no RStudio indo em `File --> New File --> R Script`. Desta vez eu te darei o código R, então sente, relaxe e fique à vontade para copiar e colar o meu código com alguns pequenos ajustes.
+
+Primeiro carregue os pacotes:
+
+```{r show_name_packages, eval = F}
+library(dplyr) # for manipulating data
+library(ggplot2) # for plotting data
+```
+
+Carregue os dados de casos de COVID-19 por estado:
+
+```{r}
+casos_estados <- read.csv("https://raw.githubusercontent.com/marcuswac/covid-br-data/master/covid-br-ms-states.csv")
+```
+
+Em seguida, nós iremos usar comandos que ajudam a ter uma visão geral dos dados recém carregados no R:
+
+```{r hlo_dataset}
+glimpse(casos_estados) # dplyr, visão geral das colunas e primeiros valores
+summary(casos_estados) # R base, resumo de estatísticas dos valores das colunas
+names(casos_estados) # R base, nome das colunas
+```
+
+Se você rodou os comandos acima e produziu resultados que fazem sentido, você está pronto para seguir adiante. Em seguida, você irá criar um novo **data frame**, que é basicamente uma tabela em R de duas dimensões, onde cada coluna contém valores de uma variável e cada linha contém um conjunto de valores para cada coluna. Use o cógido abaixo para criar um novo _data frame_ chamado `sp_rj`.
+
+```{r manipulate_cases_data}
+casos_sp_rj <- casos_estados %>%
+  filter(estado == "SP" | estado == "RJ") %>%
+  mutate(data = as.Date(data, format = "%Y-%m-%d"))
+```
+
+* A primeira parte cria um novo data frame chamado `casos_sp_rj` que é um cópia do data frame `casos_estados`. O `%>%` diz que você irá fazer algo mais com o resultado disso mais tarde.
+
+* A segunda parte (`filter`) filtra os `casos_estados` para manter apenas as linhas onde o `estado` é SP ou RJ (leia o `|` como _"ou"_).
+
+* A terceira parte (`mutate`) transforma a variável `data`, que é inicialmente uma string (`character` em R), para o tipo data (`date` em R)
+
+Vamos verificar os dados gerados.
+
+```{r}
+casos_sp_rj
+```
+
+Novamente, se você obteve resultados que fazem sentido, você pode seguir para plotar os dados.
+
+```{r plot_name_data}
+plot1 <- ggplot(casos_sp_rj, aes(x = data, y = casosAcumulado,
+                                 color = estado)) + 
+  geom_line()  
+```
+
+Se você fez isso corretamente, você não irá ver o seu plot! Como nós salvamos o `ggplot` com um nome (`plot1`), o R só salva o objeto para você. Mas verifique no painel no lado de cima à direita do RStudio novamente: onde tem `Environment -> Data` deve ter a variável `plot`, então ela existe, você só deve pedir para exibir ela desta forma:
+
+```{r}
+plot1
+```
+
+# Crie um novo plot
+
+Agora é sua vez. Edite o código acima para criar um novo data frame. Escolha 2 ou mais estados para compará-los (diferentes dos que apresentei). Crie um novo plot, modificando o primeiro argumento `casos_sp_rj` no comando `ggplot()` para o nome do seu novo data frame.
+
+
+## Salve e compartilhe
+
+Salve seu trabalho para que você possa compartilhar seu plot favorito conosco. Uma boa forma de salvar plots é usando o comando `ggsave` da biblioteca `ggplot2`. Rode este comando para ter ajuda sobre como rodá-lo:
+
+```{r eval = FALSE}
+?ggsave
+```
+
+E rode o comando para salvar o plot em um arquivo `.png`:
+
+```{r eval = F}
+ggsave("casos_covid19_sp_rj.pdf", plot1)
+```
+
+Você pode salvar com outras extensões; veja detalhes na ajuda `?ggsave` do comando.
+
+
+# Recursos adicionais
+
+- https://cdr.ibpad.com.br
+
+- https://alison.rbind.io/html/jamboree_heart_ggplot.html
+
+- http://moderndive.com/2-getting-started.html
+
+- http://r4ds.had.co.nz
+
+- https://www.rstudio.com/resources/cheatsheets/
+
+- https://rweekly.org
