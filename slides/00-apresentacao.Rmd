@@ -1,8 +1,10 @@
 ---
 title: "Apresentação do minicurso"
-author: "Prof. Marcus Carvalho e Prof. Raquel Lopes"
-#date: "6/2/2020"
-output: ioslides_presentation
+subtitle: "Análise e visualização de dados da COVID-19"
+author: "Prof. Marcus Carvalho e Prof. Raquel Lopes - DCX / CCAE / UFPB"
+output:
+  ioslides_presentation:
+    widescreen: true
 ---
 
 ```{r setup, include=FALSE}
