@@ -18,7 +18,7 @@ output:
 
 ### Semana 1
 
-- [Slides 0: Apresentação do minicurso](slides/00-apresentacao.Rmd)
+- [Slides 0: Apresentação do minicurso](slides/00-apresentacao.html)
 
 - [Slides 1: Introdução à visualização de dados](slides/01-introducao-vis.html)
 
