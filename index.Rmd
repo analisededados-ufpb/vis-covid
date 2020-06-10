@@ -22,6 +22,6 @@ output:
 
 - [Slides 1: Introdução à visualização de dados](slides/01-introducao-vis.html)
 
-- [Lab 1: Instalando o R e criando o primeiro plot](labs/00-instalacao_r.html) (envio pelo Classroom)
+- [Lab 1: Instalando o R e criando o primeiro plot](labs/01-instalacao_r.html) (envio pelo Classroom)
 
 
