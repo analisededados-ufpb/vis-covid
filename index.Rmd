@@ -7,13 +7,21 @@ output:
     theme: flatly
     toc: TRUE
     toc_float: TRUE
-    toc_depth: 2
+    toc_depth: 3
 ---
 
 ******
 
-## Semana 1
+## Material do curso
+
+******
+
+### Semana 1
+
+- [Slides 0: Apresentação do minicurso](slides/00-apresentacao.Rmd)
 
 - [Slides 1: Introdução à visualização de dados](slides/01-introducao-vis.html)
 
-- [Lab 1: Instalando o R e criando o primeiro plot](labs/00-instalacao_r.html)
+- [Lab 1: Instalando o R e criando o primeiro plot](labs/00-instalacao_r.html) (envio pelo Classroom)
+
+

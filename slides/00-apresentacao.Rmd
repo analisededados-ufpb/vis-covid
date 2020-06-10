@@ -1,0 +1,67 @@
+---
+title: "Apresentação do minicurso"
+author: "Prof. Marcus Carvalho e Prof. Raquel Lopes"
+#date: "6/2/2020"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Objetivos
+
+Capacitar os alunos para que eles entendam os **conceitos básicos** de visualização de dados e saibam **escolher opções de gráficos** adequadas aos objetivos de sua análise. Ao final do curso, espera-se que o aluno:
+
+- Conheça algumas possibilidades de tipos de gráficos, escalas e elementos de
+visualização, entendendo os seus impactos na compreensão das visualizações.
+
+- Seja capaz de extrair e manipular dados, transformando-os em formatos adequados para
+o desenvolvimento de análises e visualizações.
+
+- Seja capaz de desenvolver relatórios de análise de dados, com visualizações adequadas
+aos objetivos de sua análise.
+
+## Cronograma
+
+1. Apresentação e introdução à visualização de dados
+2. Contexto da COVID-19 e análise de visualizações
+2. Manipulação e sumarização de dados
+4. Tipos de dados e escalas
+5. Modelos de gráficos
+6. Elementos e estética de visualização
+7. Boas práticas de visualização de dados
+8. Tópicos avançados: gráficos interativos
+9. Tópicos avançados: mapas
+10. Desenvolvimento de visualizações e análises
+
+
+## Metodologia
+
+- [Google Meet](https://meet.google.com/lookup/dfktn5bsyv): aulas síncronas, quartas 10:00 às 12:00
+    - https://meet.google.com/lookup/dfktn5bsyv
+    - Inicialmente à cada 15 dias (outras sob demanda)
+
+> - [Google Classroom](https://classroom.google.com/) - código da turma: `tua2ker`
+>     - Compartilhamento de materiais: leituras, vídeos, vis
+>     - Atividades de desenvolvimento, quizz, etc.
+>     - Vocês: dúvidas, discussões, materiais interessantes
+  
+> - [Slack](https://join.slack.com/t/vis-covid/shared_invite/zt-evykvorp-y7gDANMBvnur9nX0hOz~uA): chat para dúvidas e discussões mais imediatas
+>     - Vocês podem e devem responder dúvidas dos colegas
+
+
+## Ferramentas
+
+- **Linguagem**: R
+- **Ambiente de desenvolvimento (IDE)**: RStudio
+- **Principais pacotes do R**:
+    - `tidyverse`: manipulação de dados
+    - `ggplot2`: geração de gráficos (plots)
+    - `Rmarkdown`: geração de relatórios, sites, slides
+- Outras opções de pacotes mais avançados:
+  - `plotly`: criação de gráficos interativos
+  - `sf`, `leaflet`: criação de mapas interativos
+  - `flexdashboard`: criação de dashboards
+  - `shiny`: páginas web dinâmicas (cliente/servidor)
+

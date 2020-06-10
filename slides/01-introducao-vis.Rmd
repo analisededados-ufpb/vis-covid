@@ -21,18 +21,18 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
 ## Visualização (vis) -- O que é? Para que?
 
-<span class="blue">_"Representações visuais de dados projetados para ajudar pessoas a realizarem tarefas de forma mais efetiva"_</span> (Tamara Munzner)
+> <span class="blue">_"Representações visuais de dados projetados para ajudar pessoas a realizarem tarefas de forma mais efetiva"_</span> (Tamara Munzner)
 
-- Amplia capacidade humana de tomar decisões
-   - Permite analisar dados quando perguntas ainda são desconhecidas
+> - Amplia capacidade humana de tomar decisões
+>     - Permite analisar dados quando perguntas ainda são desconhecidas
 
-- Finalidade:
-  - Compreender o problema para projetar métodos computacionais
-  - Validar ou complementar decisões baseadas em modelos
-  - Análise exploratória para encontrar ou confirmar padrões
-  - Apresentar informações para outras pessoas
+> - Finalidade:
+>     - **Compreender** o problema para projetar métodos computacionais
+>     - **Validar** ou complementar decisões baseadas em modelos
+>     - **Explorar** através de análise para encontrar ou confirmar padrões
+>     - **Apresentar** informações para outras pessoas
 
-<div class="red">- Ferramentas computacionais tornam a geração de gráficos mais eficiente</div>
+> - <div class="red">Ferramentas computacionais tornam a geração de gráficos mais eficiente</div>
    
 <div class="notes">
 - Quando as perguntas são conhecidas, pode-se usar estatística, machine learning
@@ -42,7 +42,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 ## Cálculo de estatísticas x Visualização
 
 - Estatística é muito poderosa, mas sumarização pode esconder informações
-- Ex: O _Quarteto de Anscombe_ são 4 datasets com estatísticas idênticas
+  - Ex: O _Quarteto de Anscombe_ são 4 datasets com estatísticas idênticas:
 
 ```{r}
 anscombe_cols <- names(anscombe)
@@ -67,12 +67,12 @@ knitr::kable(anscombe_stats, digits = 1)
 
 <br/>
 
-- <span class="red">Os dados são tão iguais quanto parecem nas estatísticas?</span>
+> - <span class="red">Os dados são tão iguais quanto parecem nas estatísticas?</span>
 
 ## Cálculo de estatísticas x Visualização
 
 - Estatística é muito poderosa, mas sumarização pode esconder informações
-- Ex: O _Quarteto de Anscombe_ são 4 datasets com estatísticas idênticas
+  - Ex: O _Quarteto de Anscombe_ são 4 datasets com estatísticas idênticas:
 
 ```{r, fig.align="center"}
 p1 <- ggplot(anscombe_df, aes(x1, y1)) +
@@ -105,66 +105,91 @@ p1 + p2 + p3 + p4
 ## Cálculo de estatísticas x Visualização
 
 - Estatística é muito poderosa, mas sumarização pode esconder informações
-- Outro exemplo: [Datasaurus](http://www.thefunctionalart.com/2016/08/download-datasaurus-never-trust-summary.html)
-
+  - Outro exemplo de datasets com estatísticas iguais: [Datasaurus](http://www.thefunctionalart.com/2016/08/download-datasaurus-never-trust-summary.html)
+  
 ```{r, out.width = "800px", fig.align="center"}
 knitr::include_graphics("images/DinoSequential.gif")
 ```
 
-- <div class="red">Visualizações podem ajudar a encontrar padrões não capturados</div>
-  - Ainda mais significativo para conjuntos de dados grandes e complexos
+> - <span class="red">Visualizações podem ajudar a encontrar padrões não capturados</span>
+>     - Ainda mais significativo para conjuntos de dados grandes e complexos
 
 
 ## Eficácia do design na visualização
 
-<div class="blue">_"No picture can communicate the truth, the whole truth, and nothing but the truth"_</div>
+<div class="blue">_"No picture can communicate the truth, the whole truth, and nothing but the truth"_</div> (Tamara Munzner)
 
 <br/>
 
-- _Vis_ são abstrações onde escolhe-se quais aspectos serão enfatizados
-- Há muitas possibilidades no espaço do design e a maioria será ineficaz
-  - O objetivo não é *otimizar*,  mas *satisfazer*
-  - Considere múltiplas alternativas e depois escolha a melhor
+> - _Vis_ são abstrações onde escolhe-se quais aspectos serão enfatizados
+
+> - Há muitas possibilidades no espaço do design e a maioria será ineficaz
+>     - O objetivo não é *otimizar*,  mas _**satisfazer**_
+>      - Considere múltiplas alternativas e depois escolha a melhor
   
+> - É muito difícil validar visualizações
+>     - <span class="red">O que seria uma visualização _eficaz_</span>? Alguém arrisca?
+
+
+## Objetivos da visualização
+
+- **<span class="blue">Comunicar informação</span>** para aumentar entendimento
+  - Tornar algo complexo em **simples**
+  - Tornar fatos chatos em **interessantes** 
+
+</br>
+
+> - **<span class="blue">Permitir exploração</span>** para responder questões e gerar novas perguntas
+>     - Estruturar informações para que usuários as explorem e **façam suas próprias descobertas**, de forma ativa
+>         - Etapa importante da <span class="red">**ciência de dados**</span>
+
 <br/>
 
-- É muito difícil validar visualizações
-  - O que é uma visualização "eficaz"?
+> - _"O objetivo da visualização de dados é **iluminar pessoas** -- não é entreter, vender produtos, serviços ou ideias, mas **informá-las**"._ (Alberto Cairo)
 
 
 ## Atenção e memória visual
 
 - A memória humana é limitada para coisas não visíveis diretamente
-  - Também para memória de trabalho de curto prazo
+  - E para memória de trabalho de curto prazo
 
-- <span class="red">Cegueira de mudança</span>: grandes mudanças podem passar
+<br/>
+
+> - <span class="red">Cegueira de mudança</span>: grandes mudanças podem passar
 despercebidas se estivermos prestando atenção a algo diferente
+>     - Teste de atenção: https://www.youtube.com/embed/FzeXeXR9cCs
 
-## Atenção e memória visual - Teste
+## Atenção e memória visual
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/FzeXeXR9cCs" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 
 ## Densidade da informação
 
-- Quantidade de informação vs. quantidade de espaço não usado
-- Exemplo de gráficos com a mesma informação com diferentes densidades:
+- Quantidade de informação x espaço não usado
+    - Ex: gráficos com a mesma informação e diferentes densidades:
 
 ```{r, out.width="50%", fig.align="center"}
 include_graphics("images/information_density.png")
 ```
 
-- Encontrar equilíbrio entre:
-  - Mostrar muita informação para minimizar navegação e exploração
-  - Não sobrecarregar o usuário com muita informação
+> - Encontrar equilíbrio entre:
+>     - Condensar muita informação para **minimizar navegação** e exploração
+>     - **Não sobrecarregar** o usuário com muita informação
 
-## Dicas gerais visualização
 
-- A qualidade do gráfico depende da qualidade da informação que você tem
-- Ser claro e conciso não implica excesso de simplificação
-- Bom design não é embelezamento, mas estruturar a informação para permitir entendimento
-- Faça gráficos que codificam informação para ajudar o cérebro
-- Se palavras às vezes são inúteis, também serão gráficos, mapas, diagramas, ilustrações
+## Como é uma boa visualização?
+
+- Possui informação **confiável**
+    - A qualidade do gráfico depende da qualidade da informação
+
+> - Apresenta os **padrões relevantes** de forma **notável**
+
+> - É **organizada**, permitindo alguma exploração quando apropriado
+>    - Seja claro e conciso, mas cuidado para não prejudicar informação
+
+> - É **atrativa**, lembrando que **honestidade, clareza** e **profundidade** vêm antes
+>    - Bom design não é embelezamento, mas estruturar a informação para permitir entendimento
 
 <div class="notes">
 - Antes de projetar um gráfico deve-se obter a informação correta
@@ -174,59 +199,37 @@ include_graphics("images/information_density.png")
 - Na combinação de palavras e visualizações que a magia do entedimento geralmente acontece
 </div>
 
-## Boas práticas de visualização
-
-Uma boa visualização:
-
-- Possui informação **confiável**
-- Apresenta os **padrões relevantes** de forma **notável**
-- É **organizada**, de forma a permitir alguma exploração, quando apropriado
-- É **atrativa**, lembrando que **honestidade, clareza** e **profundidade** vêm antes
-
-
-## Objetivos da visualização
-
-- **<span class="blue">Comunicar informação</span>** para aumentar entendimento
-  - Tornar simples algo complexo, tornar interessantes fatos chatos
-
-<br/>
-
-- Ou **<span class="blue">permitir exploração</span>** para responder questões e gerar novas perguntas
-  - Estruturar informações para que usuários as explorem e façam suas próprias descobertas, de forma ativa
-  - Parte importante da <span class="red">**ciência de dados**</span>
-
-<br/>
-
-_O objetivo da visualização de dados é iluminar pessoas -- não é entreter, vender produtos, serviços ou ideias, mas **informá-las**._ (Alberto Cairo)
-
 
 ## Viés na visualização
 
 - Todos possuem algum viés cognitivo, cultural e ideológico
 
-- A verdade é inatingível, mas **tentar ser verdadeiro** é um objetivo digno
-  - Alguns se rendem aos seus viéses, outros tentam identificá-los e freiá-los
+> - A verdade é inatingível, mas **tentar ser verdadeiro** é um objetivo digno
+>     - Alguns se rendem aos seus viéses, outros tentam identificá-los e freiá-los
   
 <br/>  
 
-- <span class="red">Ao invés de</span> partir da mensagem que você quer passar e depois buscar informações que a suporte
+> - <span class="red">Ao invés de</span> partir da mensagem que você quer passar e depois buscar informações que a suporte
+> - <span class="blue">Você pode</span> partir da informação e analisá-la
+para descobrir as mensagens
+>     - Ou partir da mensagem e coletar informações que podem refutá-la
 
-- <span class="blue">Você pode</span> partir da informação e analisá-la
-para descobrir as mensagens que valem a pena divulgar
-  - Ou partir da mensagem e coletar informações que podem refutá-la
 
-
-## _Fake news_ vs. Visualização de dados
+## _Fake news_ x Visualização de dados
 
 - O que um cidadão pode fazer se as notícias não são confiáveis?
   - Como saber se as informações em sites e redes sociais são acuradas?
 
-- Quem criará visualizações para informar as pessoas de coisas importantes?
-  - Talvez **<span class="red">você</span>**! Ou cada um de nós
+<br/>
+
+> - Quem criará visualizações para informar as pessoas de coisas importantes?
+>    - Talvez **você**! Ou cada um de nós. <span class="red">Vamos?!</span>
 
 
 ## Referências
 
 - [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/). Tamara Munzner. CRC Press, 2014.
+
 - [**The Truthful Art**](http://www.thefunctionalart.com/p/the-truthful-art-book.html). Alberto Cairo. New Riders, 2016.
+
 - [**Worlds, not stories**](http://well-formed-data.net/archives/1027/worlds-not-stories). Moritz Stefaner. 2014.
