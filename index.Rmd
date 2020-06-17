@@ -24,4 +24,7 @@ output:
 
 - [Lab 1: Instalando o R e criando o primeiro plot](labs/01-instalacao_r.html) (envio pelo Classroom)
 
+### Semana 2
+
+- [Slides 2: Contexto da COVID-19](slides/02-contexto-covid.html)
 
