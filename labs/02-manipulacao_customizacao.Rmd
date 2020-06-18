@@ -1,0 +1,365 @@
+---
+title: 'Manipulando dados e customizando gráficos'
+author: "Marcus Carvalho (adaptado de Alison Hill)"
+output:
+  html_document:
+    theme: flatly
+    toc: TRUE
+    toc_float: TRUE
+    toc_depth: 2
+    number_sections: TRUE
+    df_print: paged
+---
+
+```{r setup, include = FALSE, cache = FALSE}
+knitr::opts_chunk$set(error = FALSE, comment = NA, warnings = FALSE, errors = FALSE, messages = FALSE)
+```
+
+```{r load-packages, include = FALSE}
+library(lubridate)
+library(tidyverse)
+```
+
+> Este documento foi traduzido e adaptado do curso [Principles & Practice of Data Visualization](https://github.com/apreshill/data-vis-labs-2018). A licença CC BY-NC 4.0 pode ser lida [aqui](https://github.com/apreshill/data-vis-labs-2018/blob/master/LICENSE.md). Copyright © Alison Presmanes Hill.
+
+# Objetivos do Lab 2
+
+- Colocar a mão na massa!
+- Conhecer mais coisas que você pode fazer
+- Desenvolver suas preferências pessoais para visualização de dados
+
+# Lendo e manipulando dados
+
+Primeiro, carregue os pacotes necessários:
+
+```{r eval=FALSE, message = FALSE, warning = FALSE}
+library(tidyverse)
+library(here)
+```
+
+Em seguida, carregue os dados de casos da COVID-19 para o Brasil a partir de uma URL:
+
+```{r}
+url_br <- "https://raw.githubusercontent.com/marcuswac/covid-br-data/master/covid-br-ms-country.csv"
+covid_br <- read_csv(url_br, col_types = cols(data = col_date()))
+```
+
+Você também pode salvar os dados em um arquivo CSV local. Eu salvei em um diretório
+chamado `data` e construi o caminho para o CSV usando o comando `here` do pacote `here`:
+
+```{r}
+covid_br <- read_csv(here::here("data", "covid-br-ms-country.csv"))
+```
+
+De um jeito ou de outro, carregue os dados e veja se ele está mais ou menos assim:
+
+```{r}
+glimpse(covid_br)
+covid_br
+```
+
+Nós queremos adicionar a informação de que dia da semana ocorreu a notificação dos casos e se é fim de semana ou não. Para isso, vamos criar com o comando `mutate()` uma nova coluna chamada `dia_da_semana`, que indica o dia da semana para uma data, usando a função `wday` do pacote `lubridate`.
+
+Para melhorar as visualizações, também vamos filtrar os dados para deixar apenas as datas
+com mais de 1000 casos acumulados em diante usando o comando `filter()`.
+
+```{r}
+covid_br <- covid_br %>%
+  mutate(dia_da_semana = lubridate::wday(data, label = TRUE)) %>%
+  filter(casosAcumulado >= 10000)
+
+glimpse(covid_br)
+```
+
+Veja que foram adicionadas duas colunas: `dia_da_semana` e `fim_de_semana`.
+Confira se os valores fazem sentido.
+
+
+# Plotando os dados
+
+Vamos iniciar com um gráfico simples:
+
+```{r}
+ggplot(covid_br, aes(x = data, y = casosNovos)) +
+  geom_col()
+```
+
+
+# Adicione texto nos eixos e título
+
+
+```{r}
+ggplot(covid_br, aes(x = data, y = casosNovos)) +
+  geom_col() +
+  labs(x = "Dia da notificação", y = "Casos novos") +
+  ggtitle("Casos novos por dia no Brasil")
+```
+
+# Brinque com cores
+
+<div class="panel panel-success">
+  <div class="panel-heading">Desafio #1:</div>
+  <div class="panel-body">
+Faça 3 versões do último plot que fizemos:
+
+* __No primeiro,__ faça as barras com linhas ao redor (`colour`) brancas.
+* __No segundo,__ faça as barras com linhas ao redor (`colour`) brancas e preenchidas (`fill`) de azul marinho ("navyblue").
+* __No terceiro,__ faça as barras com linhas ao redor brancas (`colour`) e preencha com cores diferentes (`fill`) para cada dia da semana (por enquanto use as cores padrão).
+  </div>
+</div>
+
+
+```{r}
+ggplot(covid_br, aes(x = data, y = casosNovos)) +
+  geom_col(colour = "white") +
+  labs(x = "Dia da notificação", y = "Casos novos") +
+  ggtitle("Casos novos por dia no Brasil")
+```
+
+```{r}
+ggplot(covid_br, aes(x = data, y = casosNovos)) +
+  geom_col(colour = "white", fill = "navyblue") +
+  labs(x = "Dia da notificação", y = "Casos novos") +
+  ggtitle("Casos novos por dia no Brasil")
+```
+
+```{r}
+ggplot(covid_br, aes(x = data, y = casosNovos)) +
+  geom_col(aes(fill = dia_da_semana), colour = "white") +
+  labs(x = "Dia da notificação", y = "Casos novos") +
+  ggtitle("Casos novos por dia no Brasil")
+```
+
+
+<div class="panel panel-success">
+  <div class="panel-heading">Desafio #2:</div>
+  <div class="panel-body">
+E se você quiser mudar a legenda do último plot que você fez? Procure no Google
+como fazer o seguinte:
+
+* Remover o título da legenda
+* Colocar a legenda em um espaço vazio dentro do gráfico
+
+  </div>
+</div>
+
+```{r}
+ggplot(covid_br, aes(x = data, y = casosNovos)) +
+  geom_col(aes(fill = dia_da_semana), colour = "white") +
+  labs(x = "Dia da notificação", y = "Casos novos") +
+  ggtitle("Casos novos por dia no Brasil") +
+  theme(legend.title = element_blank(), legend.position = c(0.25, 0.9),
+        legend.direction = "horizontal")
+```
+
+<div class="panel panel-success">
+  <div class="panel-heading">Desafio #3:</div>
+  <div class="panel-body">
+Você consegue ver algum padrão na quantidade de casos notificados de acordo com o dia da semana?
+
+* Quais dias da semana geralmente se tem uma diminuição mais acentuada nas notificações de casos?
+
+* Quais dias da semana geralmente se tem um aumento mais acentuado (pico) nas notificações de casos?
+
+* Você tem alguma possível explicação para esta variação?
+
+  </div>
+</div>
+
+# Modificando a base de dados
+
+Agora vamos modificar um pouco a base de dados. Vamos carregar os dados de casos por estado e agregar os dados por região.
+
+```{r}
+url_estados <- "https://raw.githubusercontent.com/marcuswac/covid-br-data/master/covid-br-ms-states.csv"
+covid_estados <- read_csv(url_estados, col_types = cols(data = col_date()))
+
+glimpse(covid_estados)
+```
+
+Nós queremos agora contar a quantidade de casos diários por região do Brasil. Para isto, iremos precisar das funções `group_by()` para agrupar os estados por data e região, e a função `summarise()` para sumarizar  os dados para cada grupo e somar os casos por região (quem já estudou banco de dados vai achar familiar).
+
+<div class="panel panel-success">
+  <div class="panel-heading">Desafio #4:</div>
+  <div class="panel-body">
+Vamos trabalhar com esse novo conjunto de dados.
+
+* Leia o arquivo "covid-br-ms-states.csv"
+* Use a função `group_by()` para agrupar os estados por data e região, e a função `summarise()` para calcular os casos e óbitos região e data. Quem já estudou banco de dados vai achar familiar esses comandos.
+* Filtre os dados apenas para o dia 01 de abril em diante
+  </div>
+</div>
+
+```{r}
+covid_regiao <- covid_estados %>%
+  group_by(regiao, data) %>%
+  summarise(casosNovos = sum(casosNovos),
+            casosAcumulado = sum(casosAcumulado),
+            obitosNovos = sum(obitosNovos),
+            obitosAcumulado = sum(obitosAcumulado),
+            populacao = sum(populacaoTCU2019)) %>%
+  filter(data >= lubridate::dmy("01-04-2020")) # dmy:day-month-year
+
+glimpse(covid_regiao)
+```
+
+
+<div class="panel panel-success">
+  <div class="panel-heading">Desafio #5:</div>
+  <div class="panel-body">
+Vamos fazer uma Análise Exploratória de Dados básica (ou **EDA**, do inglês *Exploratory Data Analysis*) no nosso novo dataset. Use comandos do R para responder o seguinte:
+
+* Qual a região que tem mais casos acumulados no último dia? Qual tem menos?
+
+* Qual a região que tem mais casos acumulados por 100 mil habitantes no último dia? Qual tem menos?
+
+  </div>
+</div>
+
+```{r}
+ultimo_dia <- max(covid_regiao$data)
+
+covid_regiao_ultimo_dia <- covid_regiao %>%
+  ungroup() %>%
+  filter(data == ultimo_dia)
+
+covid_regiao_ultimo_dia %>%
+  filter(casosAcumulado == max(casosAcumulado) |
+         casosAcumulado == min(casosAcumulado)) %>%
+  select(data, regiao, casosAcumulado, populacao)
+
+covid_regiao_ultimo_dia %>%
+  ungroup() %>%
+  mutate(casosAcumuladoPor100k = (casosAcumulado*100000)/(populacao)) %>%
+  filter(casosAcumuladoPor100k == max(casosAcumuladoPor100k) |
+         casosAcumuladoPor100k == min(casosAcumuladoPor100k)) %>%
+  select(data, regiao, casosAcumuladoPor100k)
+```
+
+
+Vamos plotar agora os casos acumulados no Brasil, destacando a quantidade de casos para cada região.
+
+```{r}
+ggplot(covid_regiao, aes(data, casosAcumulado)) +
+  geom_area(aes(fill = regiao)) +
+  labs(x = "Dia da notificação", y = "Casos novos") +
+  ggtitle("Casos acumulados no Brasil")
+```
+
+<div class="panel panel-success">
+  <div class="panel-heading">Desafio #6:</div>
+  <div class="panel-body">
+Faça as seguinte operações no último plot:
+
+* Mude as cores para a paleta de [cores brewer](https://colorbrewer2.org/) `Set1`
+* Mude o título da legenda para "Região"
+* Salve o plot em uma variável chamada "plot_regiao"
+  </div>
+</div>
+
+```{r}
+plot_regiao <- ggplot(covid_regiao, aes(data, casosAcumulado)) +
+  geom_area(aes(fill = regiao)) +
+  scale_fill_brewer(name = "Região", palette = "Set1") +
+  labs(x = "Dia da notificação", y = "Casos novos") +
+  ggtitle("Casos acumulados no Brasil")
+
+plot_regiao
+```
+
+# Brinque com as escalas e coordenadas
+
+Há um espaço em branco nas laterais do plot. A [documentação](http://ggplot2.tidyverse.org/reference/scale_continuous.html) diz que o valor padrão desse espaço é de `c(0.05, 0)` para uma escala contínua. O primeiro parâmetro é um número multiplicativo e o segundo aditivo.
+
+Então, se o eixo x tem 100 dias, por exemplo, haverá um espaço extra em branco de 100*0.05 = 5 dias no início e no fim do eixo x.
+
+Nós podemos modificar esse espaço em branco para colar o gráfico nas margens do eixo x, com o parâmetro `expand` na `scale_x_date` (já que o eixo x é do tipo date):
+
+```{r}
+plot_regiao <- plot_regiao +
+  scale_x_date(expand = c(0, 0))
+```
+
+Se você quiser dar um zoom para olhar um período mais específico, por exemplo, você pode atualizar as coordenadas.
+
+<div class="panel panel-success">
+  <div class="panel-heading">Desafio #7:</div>
+  <div class="panel-body">
+Usar `coord_cartesian` para:
+
+* Mudar a faixa do eixo-x apenas de maio até a última data
+  </div>
+</div>
+
+```{r}
+plot_regiao <- plot_regiao +
+  coord_cartesian(xlim = c(lubridate::dmy("01-05-2020", ultimo_dia)))
+
+plot_regiao
+```
+
+# Brinque com os temas
+
+Vamos mudar algumas configurações do tema:
+
+
+```{r}
+plot_regiao +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.text = element_text(size = 12)) +
+  theme(panel.background = element_blank()) +
+  theme(axis.line.x = element_line(color = "gray80", size = 0.5)) +
+  theme(axis.ticks = element_line(color = "gray80", size = 0.5))
+```
+
+<div class="panel panel-info">
+  <div class="panel-heading">Lição:</div>
+  <div class="panel-body">
+Você pode mudar *quase tudo* que seu coração desejar mudar!
+  </div>
+</div>
+
+Nós também podemos salvar tudo isso em um tema customizado. 
+
+
+```{r}
+my_theme <- theme(plot.title = element_text(hjust = 0.5),
+                  axis.text = element_text(size = 12),
+                  panel.background = element_blank(),
+                  axis.line.x = element_line(color = "gray80", size = 0.5),
+                  axis.ticks = element_line(color = "gray80", size = 0.5))
+
+plot_regiao + my_theme
+```
+
+Também podemos usar temas de outras pessoas:
+
+
+```{r}
+library(ggthemes)
+plot_regiao + theme_fivethirtyeight()
+plot_regiao + theme_economist()
+plot_regiao + theme_wsj()
+
+plot_regiao + theme_dark()
+plot_regiao + theme_minimal()
+```
+
+
+# Agora é a sua vez
+
+<div class="panel panel-info">
+  <div class="panel-heading">Atividade:</div>
+  <div class="panel-body">
+* Crie seu próprio plot com tema customizado, mostrando os casos e/ou óbitos ao longo do tempo para uma ou mais localidades (pode ser país, região, estado ou município).
+* Salve o(s) plot(s) em arquivos PNG e envie na atividade do Classroom
+
+Se estiver com dificuldade de gerar gráficos com outros dados ou localidades diferentes, você pode mostrar esses mesmos dados de casos por região e customizar do jeito que preferir.
+  </div>
+</div>
+
+Lembrando que se você quisesse salvar o plot deste exemplo em PNG, você rodaria o comando:
+
+```{r eval = F}
+ggsave("plot_casos_por_regiao.png", plot_regiao)
+```
