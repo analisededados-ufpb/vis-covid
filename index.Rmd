@@ -29,3 +29,5 @@ output:
 ### Semana 2
 
 - [Slides 2: Contexto da COVID-19](slides/02-contexto-covid.html)
+
+- [Lab 2: Manipulação de dados e customização de gráficos](https://analise-de-dados-ufpb.github.io/vis-covid/labs/02-manipulacao_customizacao.html)
