@@ -278,6 +278,8 @@ Nós podemos modificar esse espaço em branco para colar o gráfico nas margens 
 ```{r}
 plot_regiao <- plot_regiao +
   scale_x_date(expand = c(0, 0))
+
+plot_regiao
 ```
 
 Se você quiser dar um zoom para olhar um período mais específico, por exemplo, você pode atualizar as coordenadas.
@@ -293,7 +295,7 @@ Usar `coord_cartesian` para:
 
 ```{r}
 plot_regiao <- plot_regiao +
-  coord_cartesian(xlim = c(lubridate::dmy("01-05-2020", ultimo_dia)))
+  coord_cartesian(xlim = c(lubridate::dmy("01-05-2020"), ultimo_dia))
 
 plot_regiao
 ```
