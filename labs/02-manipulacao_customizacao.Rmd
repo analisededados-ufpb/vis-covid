@@ -15,27 +15,34 @@ output:
 knitr::opts_chunk$set(error = FALSE, comment = NA, warnings = FALSE, errors = FALSE, messages = FALSE)
 ```
 
-```{r load-packages, include = FALSE}
-library(lubridate)
-library(tidyverse)
-```
-
 > Este documento foi traduzido e adaptado do curso [Principles & Practice of Data Visualization](https://github.com/apreshill/data-vis-labs-2018). A licença CC BY-NC 4.0 pode ser lida [aqui](https://github.com/apreshill/data-vis-labs-2018/blob/master/LICENSE.md). Copyright © Alison Presmanes Hill.
 
-# Objetivos do Lab 2
+# Objetivos do lab
 
 - Colocar a mão na massa!
 - Conhecer mais coisas que você pode fazer
 - Desenvolver suas preferências pessoais para visualização de dados
 
-# Lendo e manipulando dados
+# Carregando pacotes
 
-Primeiro, carregue os pacotes necessários:
+Para este lab, nós vamos precisar de alguns pacotes do R. Se você não já tiver instalado, rode os comandos abaixo no Console para instalar:
 
-```{r eval=FALSE, message = FALSE, warning = FALSE}
-library(tidyverse)
-library(here)
+```{r, eval=FALSE}
+pacotes <- c("tidyverse", "here", "ggthemes", "lubridate")
+install.packages(pacotes, dependencies = TRUE)
 ```
+
+Em seguida, carregue os pacotes necessários:
+
+```{r, message = FALSE, warning = FALSE}
+library(ggthemes)
+library(here)
+library(lubridate)
+library(tidyverse)
+```
+
+
+# Lendo e manipulando dados
 
 Em seguida, carregue os dados de casos da COVID-19 para o Brasil a partir de uma URL:
 
@@ -48,8 +55,11 @@ Você também pode salvar os dados em um arquivo CSV local. Eu salvei em um dire
 chamado `data` e construi o caminho para o CSV usando o comando `here` do pacote `here`:
 
 ```{r}
-covid_br <- read_csv(here::here("data", "covid-br-ms-country.csv"))
+covid_br <- read_csv(here::here("data", "covid-br-ms-country.csv"),
+                     col_types = cols(data = col_date()))
 ```
+
+Nós usamos o parâmetro `col_types` para indicar que a coluna `data` é do tipo `date`.
 
 De um jeito ou de outro, carregue os dados e veja se ele está mais ou menos assim:
 
@@ -338,10 +348,9 @@ Também podemos usar temas de outras pessoas:
 
 
 ```{r}
-library(ggthemes)
-plot_regiao + theme_fivethirtyeight()
-plot_regiao + theme_economist()
-plot_regiao + theme_wsj()
+plot_regiao + ggthemes::theme_fivethirtyeight()
+plot_regiao + ggthemes::theme_economist()
+plot_regiao + ggthemes::theme_wsj()
 
 plot_regiao + theme_dark()
 plot_regiao + theme_minimal()
