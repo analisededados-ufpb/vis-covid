@@ -1,0 +1,236 @@
+---
+title: "Manipulação e comparação de dados agrupados"
+author: "Marcus Carvalho"
+output:
+  html_document:
+    theme: flatly
+    toc: TRUE
+    toc_float: TRUE
+    toc_depth: 2
+    number_sections: TRUE
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(error = FALSE, comment = NA, warning = FALSE, error = FALSE, message = FALSE)
+```
+
+# Objetivo
+
+O objetivo desta atividade é aplicar conceitos de manipulação e visualização de dados para agrupar os dados e comparar os diferentes grupos através de visualizações. À medida que as análises são feitas, vamos introduzindo diferentes possiblidades de visualização, destacando as vantagens e desvantagens de cada abordagem.
+
+Vamos botar a mão na massa! Siga os passos executando o código no RStudio. De preferência, crie um novo documento RMarkdown para ir adicionando os blocos de código e suas análises.
+
+# Carregando pacotes
+
+Neste lab, iremos precisar de vários pacotes. Primeiro, instale os pacotes que você ainda não tiver instalado antes (pode remover da lista os que você já tem):
+
+```{r install-pkgs, eval=FALSE}
+pkgs <- c("tidyverse", "geofacet", "here", "patchwork", "scales", "zoo")
+install.packages(pkgs, dependencies = TRUE)
+```
+
+
+```{r load-pkgs}
+library(geofacet) # organiza plots de acordo com região
+library(lubridate) # manipulação de datas
+library(here)
+library(patchwork) # organiza o layout dos plots
+library(readxl) # carrega arquivos excel
+library(scales) # escalas dos gráficos
+library(tidyverse)
+library(zoo) # função de média móvel
+```
+
+# Carregando os dados
+
+Vamos carregar os dados da COVID-19 disponibilizados no [Painel Coronavírus do Ministério da Saúde](https://covid.saude.gov.br/). Para baixar os dados do site, você clica no botão `Arquivo CSV` (apesar do formato do arquivo ser `.xlsx`). No meu caso, o arquivo que baixei chamado `HIST_PAINEL_COVIDBR_21jun2020.xlsx` está no diretório `data` localizada na raíz do projeto. Se o seu arquivo estiver em outro local ou tiver outro nome, mude a localização no comando abaixo, rode e veja se os dados foram carregados:
+
+```{r}
+covid <- read_xlsx(here("data", "HIST_PAINEL_COVIDBR_23jun2020.xlsx"),
+                   guess_max = 100000)
+glimpse(covid)
+```
+
+O arquivo fornecido pelo Ministério da Saúde possui dados agregados em 3 níveis de agregação: para todo o Brasil, por estado e por município. Vamos explorá-los.
+
+## Dados agregados do Brasil
+
+Quando os dados são agregados para todo o Brasil, as colunas `estado` e `codmun` (código do município) não possuem valores -- em R, elas possuem o código `NA`, que representa um valor não existente. O comando `is.na()` retorna `TRUE` se o valor para aquela coluna não existe ou `FALSE` caso contrário.
+
+Desta forma, podemos filtrar os dados agregados para todo o Brasil retornando apenas as linhas onde as colunas `estado` e `codmun` são `NA`. Usando o comando `filter()`, quando as condições são passadas separadas por vírgula, o operador **AND** é aplicado; ou seja, só serão retornadas as linhas que satisfizerem todas essas condições, como no caso abaixo.
+
+```{r}
+covid_pais <- covid %>%
+  filter(is.na(estado), is.na(codmun))
+
+glimpse(covid_pais)
+```
+
+Outra forma de aplicar o operador **AND** para vetores em R é usando o símbolo `&` desta forma: `filter(df, cond_A & cond_B)`, onde serão retornadas apenas as linhas do dataframe `df` que satisfizerem `cond_A` **e** `cond_B`. Para aplicar o operador **OR** para vetores, você usa símbolo `|` assim: `filter(df, condA | condB)`, que retorná as linhas de `df` que satisfaçam `condA` **ou** `condB`.
+
+Vamos agora visualizar (de forma bem simples) os dados agregados para o Brasil, que extraímos do filtro anterior:
+
+```{r}
+p_casos_novos <- ggplot(covid_pais, aes(data, casosNovos)) +
+  geom_line()
+
+p_casos_acc <- ggplot(covid_pais, aes(data, casosAcumulado)) +
+  geom_line()
+
+p_obitos_novos <- ggplot(covid_pais, aes(data, obitosNovos)) +
+  geom_line()
+
+p_obitos_acc <- ggplot(covid_pais, aes(data, obitosAcumulado)) +
+  geom_line()
+
+p_casos_novos + p_casos_acc + p_obitos_novos + p_obitos_acc
+```
+
+
+## Dados agregados por estado
+
+Quando os dados são agregados por estado, não há valores na coluna `codmun`, mas há na coluna `estado`. A exclamação `!` é o operador `NOT` do R, então usamos `!is.na(estado)` para filtrar as linhas onde o valor na coluna `estado` **não é** `NA`:
+
+```{r}
+covid_estados <- covid %>%
+  filter(!is.na(estado), is.na(codmun))
+
+glimpse(covid_estados)
+```
+
+## Dados por município
+
+Quando os dados são agregados por município, há valores válidos nas colunas `estado` e `municipio`. Podemos filtrar assim:
+
+```{r}
+covid_municipios <- covid %>%
+  filter(!is.na(estado), !is.na(municipio))
+
+glimpse(covid_municipios)
+```
+
+# Visualizando dados por grupo
+
+Nós temos um "problema" para visualizar os casos por estado ou município, porque não conseguimos mostrar tudo com uma única linha. Vamos, então, visualizar os dados por estado, indicando que cada linha no gráfico vai representar um estado através do parâmetro `group = estado`:
+
+```{r}
+ggplot(covid_estados, aes(data, casosAcumulado, group = estado)) +
+  geom_line()
+```
+
+Ops... está difícil distinguir qual o estado cada linha representa. Vamos ver abaixo algumas opções para melhorar a visualização quando queremos visualizar vários grupos ao mesmo tempo.
+
+
+## Cores
+
+Uma forma de distinguir diferentes linhas é definindo que a propriedade de cor da linha (`colour`) será definida de acordo com a variável `estado`. Desta forma, cada estado terá sua própria cor de linha e também será exibida uma legenda para cada cor:
+
+```{r}
+ggplot(covid_estados, aes(data, casosAcumulado, colour = estado)) +
+  geom_line()
+```
+
+Mas... quando a quantidade de grupos é muito grande fica difícil distinguir as cores e identificar facilmente cada estado.
+
+
+## Facets
+
+Outra forma de separar os dados por estado é usando `facets`, que quebra o gráfico em painéis menores, como no comando `facet_wrap()` abaixo:
+
+```{r, fig.height=10}
+ggplot(covid_estados, aes(data, casosNovos)) +
+  geom_line() +
+  facet_wrap(vars(estado), ncol = 4)
+```
+
+
+Um problema de juntar vários estados em um mesmo gráfico é que eles possuem _escalas_ diferentes. Por exemplo, enquanto SP tem mais de 200 mil casos, MS tem apenas 5 mil. Isso faz com que o gráfico de SP aumente a escala de todos os gráficos e a tendência de crescimento das curvas de estados com poucos casos ficam imperceptíveis.
+
+Uma forma de contornar este problema é tornar as escalas de cada painel independente para o eixo y com o parâmetro `scales = "free_y"`:
+
+```{r, fig.height=10}
+ggplot(covid_estados, aes(data, casosNovos)) +
+  geom_line() +
+  facet_wrap(vars(estado), ncol = 4, scales = "free_y")
+```
+
+Agora, conseguimos observar melhor a tendência dos novos casos ao longo do tempo para todos os estados. Mas... **<span style="color:red">muito cuidado ao comparar gráficos em escalas diferentes!</span>**. Podemos ter a falsa impressão de que todos os estados estão numa situação muito parecida, mesmo os números sendo bem diferentes. Observe que SP chegou a ter mais de 15 mil novos casos em um dia, enquanto MS não passou de 400 novos casos em um dia. Então, ele é útil para compararmos tendências, mas não para compararmos valores.
+
+## Escala logarítimica
+
+Uma outra forma de conseguirmos ver melhor dados de grupos com faixas de valores muito diferentes em uma mesma escala é usando uma função para transformar as escalas. Na escala tradicional, a distância em um eixo entre os pontos 10 e 20 é a mesma da distância entre os pontos 20 e 30 -- ou seja, tem uma relação linear com a diferença entre os pontos. Já na escala logarítmica, essas distâncias seriam diferentes. Por outro lado, numa escala log na base 10, a distância entre os valores 10 e 100, e 60 e 600 seriam iguais.
+
+Vamos visualizar o gráfico anterior usando uma escala logarítmica na base 10 para o eixo y:
+
+```{r, fig.height=10}
+ggplot(covid_estados, aes(data, casosNovos)) +
+  geom_line() +
+  facet_wrap(vars(estado), ncol = 4) +
+  scale_y_log10()
+```
+
+Note que agora o eixo y apresenta valores 1, 10, 100, 1000 com distâncias iguais entre eles. Então, este gráfico tende a apresentar um crescimento mais acentuado para valores mais baixos (ex: de 0 para 1000) e um crescimento mais suave para valores mais altos (ex: de 1000 para 2000).
+
+## Suavização da curva
+
+Um outro problema, que já vimos em uma aula anterior, é que os casos novos tem uma grande variação de um dia para o outro. Por exemplo, em fins de semana há uma tendência de menor notificação e em dias de semana de maior notificação.
+
+Para amenizar este problema, podemos adicionar uma curva suavizada (ou _smoothing_) usando a função `geom_smooth`, que usa por padrão o [método LOESS de suavização](https://en.wikipedia.org/wiki/Local_regression). Para os valores reais, vamos plotar pontos `geom_point` com transparência `alpha = 0.2`:
+
+```{r, fig.height=10}
+ggplot(covid_estados, aes(data, casosNovos)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth() +
+  facet_wrap(vars(estado), ncol = 4) +
+  scale_y_log10()
+```
+
+A média móvel (_rolling average_) é outra métrica muito usada para suavizar a curva. Podemos adicionar nos dados uma nova coluna com o valor da média móvel, onde o ponto em um dia X representa a média de valores dos últimos 7 dias a partir do dia X. Para isto, vamos usar a função _rollmean_ do pacote _zoo_ (rode `?rollmean` para ver a documentação). Vamos usar também o `group_by` para aplicar a média para os dados de cada estado isoladamente:
+
+```{r, fig.height=10}
+covid_estados <- covid_estados %>%
+  group_by(estado) %>%
+  mutate(casosNovosMediaMovel = rollmeanr(casosNovos, 7, fill = NA))
+
+ggplot(covid_estados, aes(data, casosNovos)) +
+  geom_point(alpha = 0.2) +
+  geom_line(aes(y = casosNovosMediaMovel), col = "blue") +
+  facet_wrap(vars(estado), ncol = 4) +
+  scale_y_log10()
+```
+
+# Retoques finais
+
+Por fim, vamos dar um "tapa no visu" no gráfico:
+
+- Filtrando os dados só de 15 de março em diante com `filter`
+- Usando cores diferentes para cada região usando o parâmetro `col` (é o mesmo que `colour`)
+- Deixando a linha da média móvel mais grossa com o parâmetro `size`
+- Usando a função [`facet_geo`](https://hafen.github.io/geofacet) para mostrar os subplots de acordo com a localização geográfica de cada estado
+- Usando uma paleta de [cores brewer](https://colorbrewer2.org/) com o comando `scale_color_brewer`
+- Adicionando títulos e legenda com a função `labs()` que modifica _labels_
+- Usando um tema minimalista (`theme_minimal`), customizando posição da legenda e fontes
+
+```{r, fig.height=10, fig.width=8}
+ggplot(filter(covid_estados, data >= lubridate::dmy("15-03-2020")),
+       aes(data, casosNovos, col = regiao)) +
+  geom_point(alpha = 0.1) +
+  geom_line(aes(y = casosNovosMediaMovel), size = 0.8) +
+  facet_geo(~ estado, grid = "br_states_grid1") +
+  scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
+  scale_color_brewer("Região", palette = "Set2") +
+  labs(title = "Casos novos por dia nos estados",
+       subtitle = "Em escala log. A linha representa a média móvel para 7 dias",
+       caption = "Fonte dos dados: Ministério da Saúde") +
+  theme_minimal() +
+  theme(legend.position = "top", axis.title = element_blank(),
+        strip.text = element_text(face = "bold"),
+        plot.title = element_text(face = "bold"))
+```
+
+# Referências
+
+- Andrew Heiss. Data Visualization course, [Chap. 8 - Comparisons](https://datavizm20.classes.andrewheiss.com/content/08-content/)
+- Alison Hill. [Principles & Practice of
+Data Visualization, Chap. 2 - [Working in tidyverse](https://share-blogdown.netlify.app/post/02-working-in-tidyverse/)
