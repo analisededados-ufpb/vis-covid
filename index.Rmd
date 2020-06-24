@@ -38,4 +38,4 @@ output:
 
 - [Lab 3: Manipulação e comparação de dados agrupados](labs/03-comparacao.html)
 
-- [Lab 4: Seu relatório COVID-19](labs/04/seu_relatorio_covid19.html) [[Rmd](labs/04/seu_relatorio_covid19.Rmd)]
+- [Lab 4: Seu relatório COVID-19](labs/04-seu_relatorio_covid19.html) [[Rmd](labs/04-seu_relatorio_covid19.Rmd)]
