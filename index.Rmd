@@ -14,6 +14,9 @@ output:
 
 ## Material do curso
 
+Os vídeos e outros materiais de estudo estão postados no Google Classroom do minicurso.
+As atividades práticas também deverão ser envias por lá.
+
 ******
 
 ### Semana 1
@@ -22,7 +25,7 @@ output:
 
 - [Slides 1: Introdução à visualização de dados](slides/01-introducao-vis.html)
 
-- [Lab 1: Instalando o R e criando o primeiro plot](labs/01-instalacao_r.html) (envio pelo Classroom)
+- [Lab 1: Instalando o R e criando o primeiro plot](labs/01-instalacao_r.html)
 
 ******
 
@@ -38,4 +41,4 @@ output:
 
 - [Lab 3: Manipulação e comparação de dados agrupados](labs/03-comparacao.html)
 
-- [Lab 4: Seu relatório COVID-19](labs/04-seu_relatorio_covid19.html) [[Rmd](labs/04-seu_relatorio_covid19.Rmd)]
+- [Lab 4: Seu relatório COVID-19](labs/04-seu_relatorio_covid19.html) [[Rmarkdown](https://github.com/analise-de-dados-ufpb/vis-covid/blob/master/labs/04-seu_relatorio_covid19.Rmd)]

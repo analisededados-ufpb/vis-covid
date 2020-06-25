@@ -116,19 +116,19 @@ glimpse(covid_municipios)
 
 # Visualizando dados por grupo
 
-Nós temos um "problema" para visualizar os casos por estado ou município, porque não conseguimos mostrar tudo com uma única linha. Vamos, então, visualizar os dados por estado, indicando que cada linha no gráfico vai representar um estado através do parâmetro `group = estado`:
+Nós temos um "problema" para visualizar os casos por estado ou município, porque não conseguimos mostrar tudo com uma única linha. Para visualizar os dados por estado, vamos definir que cada linha no gráfico vai representar um estado através do parâmetro `group = estado`:
 
 ```{r}
 ggplot(covid_estados, aes(data, casosAcumulado, group = estado)) +
   geom_line()
 ```
 
-Ops... está difícil distinguir qual o estado cada linha representa. Vamos ver abaixo algumas opções para melhorar a visualização quando queremos visualizar vários grupos ao mesmo tempo.
+Ops... está difícil distinguir qual estado cada linha representa. Vamos ver abaixo algumas opções para melhorar a visualização quando queremos visualizar dados divididos por grupo.
 
 
 ## Cores
 
-Uma forma de distinguir diferentes linhas é definindo que a propriedade de cor da linha (`colour`) será definida de acordo com a variável `estado`. Desta forma, cada estado terá sua própria cor de linha e também será exibida uma legenda para cada cor:
+Uma forma de distinguir diferentes linhas é fazendo com que a cor da linha (`colour`) seja definida de acordo com os valores da variável `estado`. Desta forma, cada estado terá sua própria cor de linha e também será exibida uma legenda para cada cor:
 
 ```{r}
 ggplot(covid_estados, aes(data, casosAcumulado, colour = estado)) +
@@ -149,7 +149,7 @@ ggplot(covid_estados, aes(data, casosNovos)) +
 ```
 
 
-Um problema de juntar vários estados em um mesmo gráfico é que eles possuem _escalas_ diferentes. Por exemplo, enquanto SP tem mais de 200 mil casos, MS tem apenas 5 mil. Isso faz com que o gráfico de SP aumente a escala de todos os gráficos e a tendência de crescimento das curvas de estados com poucos casos ficam imperceptíveis.
+Um problema de juntar vários estados em um mesmo gráfico é que eles possuem _escalas_ diferentes. Por exemplo, enquanto SP tem mais de 200 mil casos, TO tem apenas 9 mil. Isso faz com que o gráfico de SP aumente a escala de todos os gráficos e a tendência de crescimento das curvas de estados com poucos casos ficam imperceptíveis.
 
 Uma forma de contornar este problema é tornar as escalas de cada painel independente para o eixo y com o parâmetro `scales = "free_y"`:
 
@@ -159,13 +159,13 @@ ggplot(covid_estados, aes(data, casosNovos)) +
   facet_wrap(vars(estado), ncol = 4, scales = "free_y")
 ```
 
-Agora, conseguimos observar melhor a tendência dos novos casos ao longo do tempo para todos os estados. Mas... **<span style="color:red">muito cuidado ao comparar gráficos em escalas diferentes!</span>**. Podemos ter a falsa impressão de que todos os estados estão numa situação muito parecida, mesmo os números sendo bem diferentes. Observe que SP chegou a ter mais de 15 mil novos casos em um dia, enquanto MS não passou de 400 novos casos em um dia. Então, ele é útil para compararmos tendências, mas não para compararmos valores.
+Agora, conseguimos observar melhor a tendência dos novos casos ao longo do tempo para todos os estados. Mas... **<span style="color:red">muito cuidado ao comparar gráficos em escalas diferentes!</span>**. Podemos ter a falsa impressão de que todos os estados estão numa situação muito parecida, mesmo os números sendo bem diferentes. Observe que SP chegou a ter mais de 15 mil novos casos em um dia, enquanto TO não passou de 370 novos casos em um dia. Então, a escala independente é útil para compararmos tendências, mas não para compararmos valores.
 
 ## Escala logarítimica
 
-Uma outra forma de conseguirmos ver melhor dados de grupos com faixas de valores muito diferentes em uma mesma escala é usando uma função para transformar as escalas. Na escala tradicional, a distância em um eixo entre os pontos 10 e 20 é a mesma da distância entre os pontos 20 e 30 -- ou seja, tem uma relação linear com a diferença entre os pontos. Já na escala logarítmica, essas distâncias seriam diferentes. Por outro lado, numa escala log na base 10, a distância entre os valores 10 e 100, e 60 e 600 seriam iguais.
+Uma outra forma de conseguirmos observar melhor dados de grupos com faixas de valores muito diferentes em uma mesma escala é usando uma transformação na escala. Na escala tradicional (linear), a distância em um eixo entre os pontos 10 e 20 é a mesma distância entre os pontos 20 e 30 -- ou seja, tem uma relação linear com a diferença absoluta entre os pontos. Já na escala logarítmica, essas distâncias seriam diferentes. Por outro lado, numa escala log na base 10, a distância entre os valores 10 e 100, e 60 e 600 seriam iguais, pois possuem a mesma taxa de aumento (10x).
 
-A **escala log mostra valores relativos** ao invés de valores absolutos. Por exemplo, se um município possui inicialmente 2 casos, na semana seguinte 4, depois 8. Seguindo essa tendência, em 5 semanas terá 32 casos e em 15 semanas mais de 32 mil casos. Em uma escala linear, a curva cresceria de forma muito rápida. Já na escala log, cada um desses aumentos teria a mesma distância, porque a cada semana a quantidade de casos **aumenta em uma mesma taxa (100%)**, como podemos ver abaixo
+A **escala log mostra valores relativos** ao invés de valores absolutos. Por exemplo, se um município possui inicialmente 2 casos, na semana seguinte 4, depois 8... seguindo essa tendência, em 5 semanas terá 32 casos e em 15 semanas mais de 32 mil casos. Em uma escala linear, a curva cresceria muito rapidamente. Já na escala log, o valores de uma semana para a outra teria a mesma distância no eixo y, porque a cada semana a quantidade de casos **aumenta a uma mesma taxa (100%)**, como podemos ver nos gráficos abaixo:
 
 ```{r, fig.height=3}
 dados <- tibble(semana = 1:15, casos = 2^semana)
@@ -181,7 +181,6 @@ p2 <- p +
   ggtitle("Escala log")
 
 p1 + p2
-
 ```
 
 
@@ -194,15 +193,15 @@ ggplot(covid_estados, aes(data, casosNovos)) +
   scale_y_log10()
 ```
 
-Note que agora o eixo y apresenta valores 1, 10, 100, 1000 com distâncias iguais entre eles. Então, este gráfico tende a apresentar um crescimento mais acentuado para valores mais baixos (ex: de 0 para 1000) e um crescimento mais suave para valores mais altos (ex: de 1000 para 2000).
+Note que agora o eixo y apresenta valores 1, 10, 100, 1000 e que a distância entre 1 e 10 é a mesma distância entre 100 e 1000, já que a taxa de aumento de ambos é de 10x. A escala log apresenta um crescimento mais acentuado para valores mais baixos (ex: de 0 para 1000) e um crescimento mais suave para valores mais altos (ex: de 1000 para 2000) para intervalos com a mesma diferença absoluta.
 
-A escala logarítmica faz sentido no contexto epidemiológico, já que a transmissão do vírus é feita de forma multiplicativa de acordo com a sua taxa de reprodução efetiva, que indica quantas pessoas um paciente com a doença infecta em média.
+A escala logarítmica faz sentido no contexto epidemiológico da COVID-19, já que a transmissão do vírus é feita de forma multiplicativa de acordo a sua taxa de reprodução efetiva, que indica quantas pessoas um paciente com a doença infecta em média. Por isso a escala log é amplamente usada em análises da COVID-19, principalmente quando se quer observar e comparar **taxas** de crescimento.
 
 ## Suavização da curva
 
-Um outro problema, que já vimos em uma aula anterior, é que os casos novos tem uma grande variação de um dia para o outro. Por exemplo, em fins de semana há uma tendência de menor notificação e em dias de semana de maior notificação.
+Um outro problema, que já discutimos em uma aula anterior, é que os casos novos tem uma grande variação de um dia para o outro. Por exemplo, em fins de semana há uma tendência de menor notificação e em dias de semana de maior notificação.
 
-Para amenizar este problema, podemos adicionar uma curva suavizada (ou _smoothing_) usando a função `geom_smooth`, que usa por padrão o [método LOESS de suavização](https://en.wikipedia.org/wiki/Local_regression). Para os valores reais, vamos plotar pontos `geom_point` com transparência `alpha = 0.2`:
+Para amenizar este problema, podemos adicionar uma curva suavizada (ou _smoothing_) usando a função `geom_smooth`, que usa por padrão o [método LOESS de suavização](https://en.wikipedia.org/wiki/Local_regression). Para os valores observados, vamos plotar pontos `geom_point` com transparência `alpha = 0.2`:
 
 ```{r, fig.height=10}
 ggplot(covid_estados, aes(data, casosNovos)) +
@@ -212,7 +211,7 @@ ggplot(covid_estados, aes(data, casosNovos)) +
   scale_y_log10()
 ```
 
-A média móvel (_rolling average_) é outra métrica muito usada para suavizar a curva. Podemos adicionar nos dados uma nova coluna com o valor da média móvel, onde o ponto em um dia X representa a média de valores dos últimos 7 dias a partir do dia X. Para isto, vamos usar a função _rollmean_ do pacote _zoo_ (rode `?rollmean` para ver a documentação). Vamos usar também o `group_by` para aplicar a média para os dados de cada estado isoladamente:
+A média móvel (_rolling average_) é outra métrica muito usada para suavizar a curva. Podemos adicionar nos dados uma nova coluna com o valor da média móvel, onde o ponto em um dia X representa a média de valores observados nos últimos 7 dias a partir do dia X. Para isto, vamos usar a função _rollmean_ do pacote _zoo_ (rode `?rollmean` para ver a documentação). Vamos usar também `group_by(estado)` para aplicar a média para os dados de cada estado isoladamente, colorir a linha de azul com `col = "blue"` (igual a `colour`) e deixá-la mais grossa com `size = 0.8`:
 
 ```{r, fig.height=10}
 covid_estados <- covid_estados %>%
@@ -221,7 +220,7 @@ covid_estados <- covid_estados %>%
 
 ggplot(covid_estados, aes(data, casosNovos)) +
   geom_point(alpha = 0.2) +
-  geom_line(aes(y = casosNovosMediaMovel), col = "blue") +
+  geom_line(aes(y = casosNovosMediaMovel), col = "blue", size = 0.8) +
   facet_wrap(vars(estado), ncol = 4) +
   scale_y_log10()
 ```
@@ -231,17 +230,16 @@ ggplot(covid_estados, aes(data, casosNovos)) +
 Por fim, vamos dar um "tapa no visu" no gráfico:
 
 - Filtrando os dados só de 15 de março em diante com `filter`
-- Usando cores diferentes para cada região usando o parâmetro `col` (é o mesmo que `colour`)
-- Deixando a linha da média móvel mais grossa com o parâmetro `size`
+- Usando cores diferentes para cada região usando o parâmetro `col` dentro de `aes()`
 - Usando a função [`facet_geo`](https://hafen.github.io/geofacet) para mostrar os subplots de acordo com a localização geográfica de cada estado
 - Usando uma paleta de [cores brewer](https://colorbrewer2.org/) com o comando `scale_color_brewer`
 - Adicionando títulos e legenda com a função `labs()` que modifica _labels_
 - Usando um tema minimalista (`theme_minimal`), customizando posição da legenda e fontes
 
 ```{r, fig.height=10, fig.width=8}
-ggplot(filter(covid_estados, data >= lubridate::dmy("15-03-2020")),
+ggplot(filter(covid_estados, data >= dmy("15-03-2020")),
        aes(data, casosNovos, col = regiao)) +
-  geom_point(alpha = 0.1) +
+  geom_point(alpha = 0.2) +
   geom_line(aes(y = casosNovosMediaMovel), size = 0.8) +
   facet_geo(~ estado, grid = "br_states_grid1") +
   scale_y_log10(labels = trans_format("log10", math_format(10^.x))) +
