@@ -12,18 +12,20 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(error = FALSE, comment = NA, warning = FALSE, error = FALSE, message = FALSE)
+knitr::opts_chunk$set(error = FALSE, comment = NA, warning = FALSE,
+                      message = FALSE)
 ```
 
 # Objetivo
 
-O objetivo desta atividade é aplicar conceitos de manipulação e visualização de dados para agrupar os dados e comparar os diferentes grupos através de visualizações. À medida que as análises são feitas, vamos introduzindo diferentes possiblidades de visualização, destacando as vantagens e desvantagens de cada abordagem.
+O objetivo desta atividade é aplicar conceitos de manipulação e visualização de dados para agrupar dados e comparar os diferentes grupos através de visualizações. À medida que as análises são feitas, vamos introduzindo diferentes possibilidades de visualização, destacando as vantagens e desvantagens de cada uma.
 
-Vamos botar a mão na massa! Siga os passos executando o código no RStudio. De preferência, crie um novo documento RMarkdown para ir adicionando os blocos de código e suas análises.
+Vamos botar a mão na massa! Siga os passos executando o código no RStudio. De preferência, crie um novo documento Rmarkdown para ir adicionando os blocos de código e suas análises.
+
 
 # Carregando pacotes
 
-Neste lab, iremos precisar de vários pacotes. Primeiro, instale os pacotes que você ainda não tiver instalado antes (pode remover da lista os que você já tem):
+Primeiro, instale os pacotes que você ainda não tiver instalado antes (pode remover da lista os que você já tem):
 
 ```{r install-pkgs, eval=FALSE}
 pkgs <- c("tidyverse", "geofacet", "here", "patchwork", "scales", "zoo")
@@ -32,27 +34,28 @@ install.packages(pkgs, dependencies = TRUE)
 
 
 ```{r load-pkgs}
+library(tidyverse) # conjunto de pacotes que sempre iremos usar
 library(geofacet) # organiza plots de acordo com região
-library(lubridate) # manipulação de datas
-library(here)
+library(here) # acesso a arquivos relativos à partir da raíz do projeto
+library(lubridate) # manipulação de datas (tidyverse)
 library(patchwork) # organiza o layout dos plots
-library(readxl) # carrega arquivos excel
-library(scales) # escalas dos gráficos
-library(tidyverse)
-library(zoo) # função de média móvel
+library(readxl) # carrega arquivos excel (tidyverse)
+library(scales) # funções úteis para lidar com escalas de gráficos
+library(zoo) # função de média móvel (rolling average)
 ```
 
 # Carregando os dados
 
-Vamos carregar os dados da COVID-19 disponibilizados no [Painel Coronavírus do Ministério da Saúde](https://covid.saude.gov.br/). Para baixar os dados do site, você clica no botão `Arquivo CSV` (apesar do formato do arquivo ser `.xlsx`). No meu caso, o arquivo que baixei chamado `HIST_PAINEL_COVIDBR_21jun2020.xlsx` está no diretório `data` localizada na raíz do projeto. Se o seu arquivo estiver em outro local ou tiver outro nome, mude a localização no comando abaixo, rode e veja se os dados foram carregados:
+Vamos carregar os dados da COVID-19 disponibilizados no [Painel Coronavírus do Ministério da Saúde](https://covid.saude.gov.br/). Para baixar os dados do site, você clica no botão `Arquivo CSV` (apesar do formato do arquivo ser `.xlsx`). No meu caso, o arquivo que baixei chamado `HIST_PAINEL_COVIDBR_24jun2020.xlsx` está no diretório `data` localizada na raíz do projeto. Se o seu arquivo estiver em outro local ou tiver outro nome, mude a localização no comando `here()` abaixo, que acessa arquivos a partir da raíz do projeto, seguindo os caminhos separados por vírgula. Rode e veja se os dados foram carregados:
 
 ```{r}
-covid <- read_xlsx(here("data", "HIST_PAINEL_COVIDBR_23jun2020.xlsx"),
+covid <- read_xlsx(here("data", "HIST_PAINEL_COVIDBR_24jun2020.xlsx"),
                    guess_max = 100000)
 glimpse(covid)
 ```
 
 O arquivo fornecido pelo Ministério da Saúde possui dados agregados em 3 níveis de agregação: para todo o Brasil, por estado e por município. Vamos explorá-los.
+
 
 ## Dados agregados do Brasil
 
@@ -84,6 +87,7 @@ p_obitos_novos <- ggplot(covid_pais, aes(data, obitosNovos)) +
 p_obitos_acc <- ggplot(covid_pais, aes(data, obitosAcumulado)) +
   geom_line()
 
+# mostrando vários plots na mesma imagem com o pacote patchwork 
 p_casos_novos + p_casos_acc + p_obitos_novos + p_obitos_acc
 ```
 
@@ -161,6 +165,26 @@ Agora, conseguimos observar melhor a tendência dos novos casos ao longo do temp
 
 Uma outra forma de conseguirmos ver melhor dados de grupos com faixas de valores muito diferentes em uma mesma escala é usando uma função para transformar as escalas. Na escala tradicional, a distância em um eixo entre os pontos 10 e 20 é a mesma da distância entre os pontos 20 e 30 -- ou seja, tem uma relação linear com a diferença entre os pontos. Já na escala logarítmica, essas distâncias seriam diferentes. Por outro lado, numa escala log na base 10, a distância entre os valores 10 e 100, e 60 e 600 seriam iguais.
 
+A **escala log mostra valores relativos** ao invés de valores absolutos. Por exemplo, se um município possui inicialmente 2 casos, na semana seguinte 4, depois 8. Seguindo essa tendência, em 5 semanas terá 32 casos e em 15 semanas mais de 32 mil casos. Em uma escala linear, a curva cresceria de forma muito rápida. Já na escala log, cada um desses aumentos teria a mesma distância, porque a cada semana a quantidade de casos **aumenta em uma mesma taxa (100%)**, como podemos ver abaixo
+
+```{r, fig.height=3}
+dados <- tibble(semana = 1:15, casos = 2^semana)
+
+p <- ggplot(dados, aes(semana, casos)) +
+  geom_line()
+
+p1 <- p +
+  ggtitle("Escala linear")
+
+p2 <- p +
+  scale_y_continuous(trans = "log2", breaks = 2^seq(1, 15, 2)) +
+  ggtitle("Escala log")
+
+p1 + p2
+
+```
+
+
 Vamos visualizar o gráfico anterior usando uma escala logarítmica na base 10 para o eixo y:
 
 ```{r, fig.height=10}
@@ -171,6 +195,8 @@ ggplot(covid_estados, aes(data, casosNovos)) +
 ```
 
 Note que agora o eixo y apresenta valores 1, 10, 100, 1000 com distâncias iguais entre eles. Então, este gráfico tende a apresentar um crescimento mais acentuado para valores mais baixos (ex: de 0 para 1000) e um crescimento mais suave para valores mais altos (ex: de 1000 para 2000).
+
+A escala logarítmica faz sentido no contexto epidemiológico, já que a transmissão do vírus é feita de forma multiplicativa de acordo com a sua taxa de reprodução efetiva, que indica quantas pessoas um paciente com a doença infecta em média.
 
 ## Suavização da curva
 
@@ -233,4 +259,5 @@ ggplot(filter(covid_estados, data >= lubridate::dmy("15-03-2020")),
 
 - Andrew Heiss. Data Visualization course, [Chap. 8 - Comparisons](https://datavizm20.classes.andrewheiss.com/content/08-content/)
 - Alison Hill. [Principles & Practice of
-Data Visualization, Chap. 2 - [Working in tidyverse](https://share-blogdown.netlify.app/post/02-working-in-tidyverse/)
+Data Visualization, [Chap. 2 - Working in tidyverse](https://share-blogdown.netlify.app/post/02-working-in-tidyverse/)
+- Lisa Charlotte. [How to read a log scale]( https://blog.datawrapper.de/weeklychart-logscale)
