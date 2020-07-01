@@ -65,7 +65,9 @@ Desta forma, podemos filtrar os dados agregados para todo o Brasil retornando ap
 
 ```{r}
 covid_pais <- covid %>%
-  filter(is.na(estado), is.na(codmun))
+  filter(is.na(estado), is.na(codmun)) %>%
+  select(-estado, -municipio, -codmun, -codRegiaoSaude, -nomeRegiaoSaude,
+         -coduf)
 
 glimpse(covid_pais)
 ```
@@ -75,7 +77,7 @@ Outra forma de aplicar o operador **AND** para vetores em R é usando o símbolo
 Vamos agora visualizar (de forma bem simples) os dados agregados para o Brasil, que extraímos do filtro anterior:
 
 ```{r}
-p_casos_novos <- ggplot(covid_pais, aes(data, casosNovos)) +
+p_casos_novos <- ggplot(covid_pais, aes(x = data, y = casosNovos)) +
   geom_line()
 
 p_casos_acc <- ggplot(covid_pais, aes(data, casosAcumulado)) +
