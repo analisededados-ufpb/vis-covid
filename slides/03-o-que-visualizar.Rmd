@@ -8,6 +8,12 @@ output:
     df_print: paged
 ---
 
+<style type="text/css">
+slides > slide:not(.nobackground):after {
+  content: '';
+}
+</style>
+
 ```{r setup, include=FALSE}
 library(dplyr)
 library(emo)
@@ -34,14 +40,12 @@ div.footnotes {
 
 ## O que visualizar?
 
-Visualizações dependem dos dados que temos à disposição
-
-- Que tipo de dados nós temos?
-- Que informações podemos extrair dos dados?
-  - E quais devem ser fornecidas explicitamente?
-- Quais conceitos de alto nível permitirá separmos os dados mais úteis?
-
-O que os valores abaixo significam?
+> - Visualizações dependem dos dados que temos à disposição
+> - Que tipo de dados nós temos?
+> - Que informações podemos extrair dos dados?
+>     - E quais devem ser fornecidas explicitamente?
+> - Quais conceitos de alto nível permitirá separmos os dados mais úteis?
+> - O que os valores abaixo significam?
 
 > - <span class="red">Precisamos de informações da **semântica** e dos **tipos** dos dados</span>
 
@@ -61,9 +65,11 @@ covid_pb %>%
   kable(row.names = FALSE)
 ```
 
-## Semântica do dado {.build}
 
-É o seu significado no mundo real
+
+## Semântica dos dados {.build}
+
+- É o seu significado no mundo real
 
 - Os nomes das colunas ajudam no significado
   - Fica mais de entender os dados assim?
@@ -92,87 +98,169 @@ covid_pb %>%
 
 ## Tipos de dados
 
-```{r}
+```{r, fig.align="center"}
 include_graphics("images/data_types.png")
 ```
 
 > - **Atributo**: propriedade específica que pode ser medida ou observada
 >     - Ex: casos, óbitos, leitos ocupados, internações
+
 > - **Item**: entidade individual discreta, como linhas em tabela ou nó em rede
->      - Ex: municípios, hospitais, pacientes
+>     - Ex: municípios, hospitais, pacientes
+
 > - **Link**: relacionamento entre itens, tipicamente em uma rede
+
 > - **Grid**: estratégia para amostra de dados em termos geométricos e topológicos
+
 > - **Posição**: dados espaciais, com localização espaço 2D ou 3D
->      - Ex: latitude, longitude e altitude
+>     - Ex: latitude, longitude e altitude
 
 <div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
 
-
-## Tipos de dataset (1/2)
-
-**Dataset**: coleção de informações alvo de análises. Combina tipos de dados:
-
-```{r}
-include_graphics("images/data_and_dataset_types.png")
-```
-
-> - **Tabela**: _linhas_ representam itens e _colunas_ atributos. _célula_ combina linha e coluna e contém _valor_
-> - **Rede**: _nodes_ representam itens e _links_ o relacionamento entre eles
-> - **Field**: _células_ com medições no domínio contínuo (valores infinitos), comuns em dados espaciais
-
-<div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
-
-## Tipos de dataset (2/2)
-
-**Dataset**: coleção de informações alvo de análises. Combina tipos de dados:
-
-```{r}
-include_graphics("images/data_and_dataset_types.png")
-```
-
-- **Geometria**: informações do _formato_ de itens com posições espaciais explícitas (ponto, linha, área)
-
-> - Outras combinações: **set** (conjunto) é um grupo de itens sem ordem; **list** é um grupo ordenado; e **cluster** é um agrupamento baseado na similaridade de atributos
-
-<div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
 
 ## Tipos de dataset
 
-```{r}
-include_graphics("images/dataset_types.png")
+**Dataset**: coleção de informações alvo de análises. Combina tipos de dados:
+
+```{r, fig.align="center"}
+include_graphics("images/data_and_dataset_types.png")
 ```
+
+<div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
+
+## Tipos de dataset (1/5)
+
+**Dataset**: coleção de informações alvo de análises. Combina tipos de dados:
+
+```{r, fig.align="center"}
+include_graphics("images/data_and_dataset_types.png")
+```
+
+<div class="columns-2">
+<br/>
+
+- **Tabelas**: _linhas_ representam itens e _colunas_ atributos. _célula_ combina linha e coluna e contém _valor_
+
+<br/><br/>
+
+```{r}
+include_graphics("images/dataset_types_table.png")
+```
+</div>
+
+<div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
+
+## Tipos de dataset (2/5)
+
+**Dataset**: coleção de informações alvo de análises. Combina tipos de dados:
+
+```{r, fig.align="center"}
+include_graphics("images/data_and_dataset_types.png")
+```
+
+<div class="columns-2">
+<br/>
+
+- **Redes**: _nodes_ representam itens e _links_ o relacionamento entre eles
+
+<br/><br/>
+
+```{r}
+include_graphics("images/dataset_types_networks.png")
+```
+</div>
+
+<div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
+
+## Tipos de dataset (3/5)
+
+**Dataset**: coleção de informações alvo de análises. Combina tipos de dados:
+
+```{r, fig.align="center"}
+include_graphics("images/data_and_dataset_types.png")
+```
+
+<div class="columns-2">
+<br/>
+
+- **Fields**: _células_ com medições no domínio contínuo (valores infinitos), comuns em dados espaciais
+
+<br/><br/>
+
+```{r}
+include_graphics("images/dataset_types_fields.png")
+```
+</div>
+
+<div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
+
+## Tipos de dataset (4/5)
+
+**Dataset**: coleção de informações alvo de análises. Combina tipos de dados:
+
+```{r, fig.align="center"}
+include_graphics("images/data_and_dataset_types.png")
+```
+
+<div class="columns-2">
+<br/>
+
+- **Geometria**: informações do _formato_ de itens com posições espaciais explícitas (ponto, linha, área)
+
+<br/><br/>
+
+```{r}
+include_graphics("images/dataset_types_geometry.png")
+```
+</div>
+
+<div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
+
+
+## Tipos de dataset (5/5)
+
+**Dataset**: coleção de informações alvo de análises. Combina tipos de dados:
+
+```{r, fig.align="center"}
+include_graphics("images/data_and_dataset_types.png")
+```
+
+Outras combinações: 
+
+- **Conjunto** (_set_): grupo de itens sem ordem
+- **Lista** (_list_): grupo de itens com ordem
+- **Agrupamento** (_cluster_): grupos baseados na similaridade de atributos
 
 <div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
 
 
 ## Disponibilidade do dataset
 
-```{r}
+```{r, fig.align="center"}
 include_graphics("images/dataset_availability.png")
 ```
 
-- **Estático**: o dataset está disponível todo de uma vez
+> - **Estático**: o dataset está disponível todo de uma vez
 
-- **Dinâmico**: a informação do dataset vai sendo disponibilizada em fluxos dinâmicos ao longo da visualização
-  - Exemplos de mudanças dinâmicas:
-    - adicionar novos itens ou remover anteriores
-    - alterar valores de itens existentes
+> - **Dinâmico**: a informação do dataset vai sendo disponibilizada em fluxos dinâmicos ao longo da visualização
+>     - Exemplos de mudanças dinâmicas:
+>         - adicionar novos itens ou remover anteriores
+>         - alterar valores de itens existentes
 
 <div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
 
 
 ## Tipos de atributos
 
-```{r}
+```{r, fig.align="center"}
 include_graphics("images/attribute_types.png")
 ```
 
-> - **Categórico** (nominal): dados não têm ordenação explícita. Ex: frutas, nomes
->     - Só consegue distinguir se coisas são iguais ou diferentes
-  
+> - **Categórico** (nominal): dados não têm ordenação explícita
+>     - Ex: frutas, nomes. Só consegue distinguir se coisas são iguais/diferentes
 > - **Ordenado**: dados têm ordenação implícita. Pode ser subdividido em:
 >     - **Ordinal**: possui ordem, mas operações aritméticas não fazem sentido
->         - Ex:  _Rankings_ e tamanhos "pequeno", "médio", grande
+>         - Ex:  _Rankings_, tamanhos "pequeno", "médio", "grande"
 >     - **Quantitativo**: medição que suporta comparação aritmética
 >          - Números inteiros e reais, como: altura, idade, temperatura, preço
 
@@ -181,17 +269,20 @@ include_graphics("images/attribute_types.png")
 
 ## Dados ordenados -- direção da ordenação
 
-```{r}
+```{r, fig.align="center"}
 include_graphics("images/ordering_direction.png")
 ```
 
-- **Sequencial**: quando há uma faixa homogênea do valor mínimo ao máximo
-  - Ex: novos casos de uma doença, que vai de zero até um valor máximo
-- **Divergente**: duas sequências em direções opostas se juntam no ponto zero
-  - Ex: diferença percentual de novos casos, que tem valores positivos quando cresce,  negativos quando diminui e o zero é o ponto de junção
-- **Cíclico**: ao invés de crescer indefinidamente, valores retornam ao ponto inicial
-  - Ex: hora do dia, dia da semana, mês do ano
+> - **Sequencial**: quando há uma faixa homogênea do valor mínimo ao máximo
+>     - Ex: novos casos de uma doença, que vai de zero até um valor máximo
 
+> - **Divergente**: duas sequências em direções opostas se juntam no ponto zero
+>     - Ex: diferença percentual de novos casos, que tem valores positivos quando cresce, negativos quando diminui e o zero é o ponto de junção
+
+> - **Cíclico**: ao invés de crescer indefinidamente, valores retornam ao ponto inicial
+>     - Ex: hora do dia, dia da semana, mês do ano
+
+<div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
 
 ## Atributos hierárquicos
 
@@ -205,8 +296,9 @@ include_graphics("images/ordering_direction.png")
 >     - Série temporal que pode ter padrões interessantes nos diferentes níveis
 
 
-## Quizz
+## Quizz (responda na atividade do Classroom)
 
+- Qual a semântica de cada dado deste dataset?
 - Qual o tipo deste dataset?
 - Quais os tipos dos atributos? (categóricos, ordinais ou quantitativos)
 - Qual a direção da ordenação, se aplicável? (sequencial, divergente ou cíclico)
@@ -217,3 +309,9 @@ covid_pb %>%
   tail(4) %>%
   kable(row.names = FALSE)
 ```
+
+## Referências
+
+- Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/). Ch 2. What: Data Abstraction. CRC Press, 2014.
+
+- Alberto Cairo. []
