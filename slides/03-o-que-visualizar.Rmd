@@ -40,12 +40,14 @@ div.footnotes {
 
 ## O que visualizar?
 
-> - Visualizações dependem dos dados que temos à disposição
-> - Que tipo de dados nós temos?
-> - Que informações podemos extrair dos dados?
->     - E quais devem ser fornecidas explicitamente?
-> - Quais conceitos de alto nível permitirá separmos os dados mais úteis?
-> - O que os valores abaixo significam?
+Visualizações dependem dos dados que temos à disposição
+
+- Que tipo de dados nós temos?
+- Que informações podemos extrair dos dados?
+     - E quais devem ser fornecidas explicitamente?
+- Quais conceitos de alto nível permitirá separmos os dados mais úteis?
+
+- O que os valores abaixo significam?
 
 > - <span class="red">Precisamos de informações da **semântica** e dos **tipos** dos dados</span>
 
@@ -64,7 +66,6 @@ covid_pb %>%
   tail(1) %>%
   kable(row.names = FALSE)
 ```
-
 
 
 ## Semântica dos dados {.build}
@@ -91,9 +92,9 @@ covid_pb %>%
 
 **Exemplos**:
 
-> - Se um número representa a contagem de novos casos da COVID-19 em um município, então o seu tipo é uma _quantidade_ e a soma de dois números deste tipo faz sentido
+- Se um número representa a contagem de novos casos da COVID-19 em um município, então o seu tipo é uma _quantidade_ e a soma de dois números deste tipo faz sentido
 
-> - Se um número representa o código do IBGE de um município, o seu tipo é um _código_, que é apenas uma categoria representada por um número
+- Se um número representa o código do IBGE de um município, o seu tipo é um _código_, que é apenas uma categoria representada por um número
 
 
 ## Tipos de dados
@@ -102,18 +103,18 @@ covid_pb %>%
 include_graphics("images/data_types.png")
 ```
 
-> - **Atributo**: propriedade específica que pode ser medida ou observada
->     - Ex: casos, óbitos, leitos ocupados, internações
+- **Atributo**: propriedade específica que pode ser medida ou observada
+  - Ex: casos, óbitos, leitos ocupados, internações
 
-> - **Item**: entidade individual discreta, como linhas em tabela ou nó em rede
->     - Ex: municípios, hospitais, pacientes
+- **Item**: entidade individual discreta, como linhas em tabela ou nó em rede
+  - Ex: municípios, hospitais, pacientes
 
-> - **Link**: relacionamento entre itens, tipicamente em uma rede
+- **Link**: relacionamento entre itens, tipicamente em uma rede
 
-> - **Grid**: estratégia para amostra de dados em termos geométricos e topológicos
+- **Grid**: estratégia para amostra de dados em termos geométricos e topológicos
 
-> - **Posição**: dados espaciais, com localização espaço 2D ou 3D
->     - Ex: latitude, longitude e altitude
+- **Posição**: dados espaciais, com localização espaço 2D ou 3D
+  - Ex: latitude, longitude e altitude
 
 <div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
 
@@ -172,6 +173,7 @@ include_graphics("images/dataset_types_networks.png")
 
 <div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
 
+
 ## Tipos de dataset (3/5)
 
 **Dataset**: coleção de informações alvo de análises. Combina tipos de dados:
@@ -193,6 +195,7 @@ include_graphics("images/dataset_types_fields.png")
 </div>
 
 <div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
+
 
 ## Tipos de dataset (4/5)
 
@@ -240,12 +243,12 @@ Outras combinações:
 include_graphics("images/dataset_availability.png")
 ```
 
-> - **Estático**: o dataset está disponível todo de uma vez
+- **Estático**: o dataset está disponível todo de uma vez
 
-> - **Dinâmico**: a informação do dataset vai sendo disponibilizada em fluxos dinâmicos ao longo da visualização
->     - Exemplos de mudanças dinâmicas:
->         - adicionar novos itens ou remover anteriores
->         - alterar valores de itens existentes
+- **Dinâmico**: a informação do dataset vai sendo disponibilizada em fluxos dinâmicos ao longo da visualização
+  - Exemplos de mudanças dinâmicas:
+    - adicionar novos itens ou remover anteriores
+    - alterar valores de itens existentes
 
 <div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
 
@@ -256,13 +259,13 @@ include_graphics("images/dataset_availability.png")
 include_graphics("images/attribute_types.png")
 ```
 
-> - **Categórico** (nominal): dados não têm ordenação explícita
->     - Ex: frutas, nomes. Só consegue distinguir se coisas são iguais/diferentes
-> - **Ordenado**: dados têm ordenação implícita. Pode ser subdividido em:
->     - **Ordinal**: possui ordem, mas operações aritméticas não fazem sentido
->         - Ex:  _Rankings_, tamanhos "pequeno", "médio", "grande"
->     - **Quantitativo**: medição que suporta comparação aritmética
->          - Números inteiros e reais, como: altura, idade, temperatura, preço
+- **Categórico** (nominal): dados não têm ordenação explícita
+  - Ex: frutas, nomes. Só consegue distinguir se coisas são iguais/diferentes
+- **Ordenado**: dados têm ordenação implícita. Pode ser subdividido em:
+  - **Ordinal**: possui ordem, mas operações aritméticas não fazem sentido
+    - Ex:  _Rankings_, tamanhos "pequeno", "médio", "grande"
+  - **Quantitativo**: medição que suporta comparação aritmética
+    - Números inteiros e reais, como: altura, idade, temperatura, preço
 
 <div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
 
@@ -273,27 +276,28 @@ include_graphics("images/attribute_types.png")
 include_graphics("images/ordering_direction.png")
 ```
 
-> - **Sequencial**: quando há uma faixa homogênea do valor mínimo ao máximo
->     - Ex: novos casos de uma doença, que vai de zero até um valor máximo
+- **Sequencial**: quando há uma faixa homogênea do valor mínimo ao máximo
+  - Ex: novos casos de uma doença, que vai de zero até um valor máximo
 
-> - **Divergente**: duas sequências em direções opostas se juntam no ponto zero
->     - Ex: diferença percentual de novos casos, que tem valores positivos quando cresce, negativos quando diminui e o zero é o ponto de junção
+- **Divergente**: duas sequências em direções opostas se juntam no ponto zero
+  - Ex: diferença percentual de novos casos, que tem valores positivos quando cresce, negativos quando diminui e o zero é o ponto de junção
 
-> - **Cíclico**: ao invés de crescer indefinidamente, valores retornam ao ponto inicial
->     - Ex: hora do dia, dia da semana, mês do ano
+- **Cíclico**: ao invés de crescer indefinidamente, valores retornam ao ponto inicial
+  - Ex: hora do dia, dia da semana, mês do ano
 
 <div class="footnotes">Fonte:  Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/).</div>
+
 
 ## Atributos hierárquicos
 
 - Pode existir uma estrutura hierárquica entre um ou vários atributos
 
-> - **Exemplo 1**: atributo geográfico de uma localização
->     - Pode ser agregado no nível de bairro, cidade, estado, região ou país
+- **Exemplo 1**: atributo geográfico de uma localização
+  - Pode ser agregado no nível de bairro, cidade, estado, região ou país
 
-> - **Exemplo 2**: quantidade de vendas de produtos online no tempo
->     - Pode ser agregado em vendas por hora, dia, mês, ano
->     - Série temporal que pode ter padrões interessantes nos diferentes níveis
+- **Exemplo 2**: quantidade de vendas de produtos online no tempo
+  - Pode ser agregado em vendas por hora, dia, mês, ano
+  - Série temporal que pode ter padrões interessantes nos diferentes níveis
 
 
 ## Quizz (responda na atividade do Classroom)
@@ -313,5 +317,3 @@ covid_pb %>%
 ## Referências
 
 - Tamara Munzner. [**Visualization Analysis & Design**](https://www.cs.ubc.ca/~tmm/vadbook/). Ch 2. What: Data Abstraction. CRC Press, 2014.
-
-- Alberto Cairo. []
