@@ -42,3 +42,9 @@ As atividades práticas também deverão ser envias por lá.
 - [Lab 3: Manipulação e comparação de dados agrupados](labs/03-comparacao.html)
 
 - [Lab 4: Seu relatório COVID-19](labs/04-seu_relatorio_covid19.html) [[Rmarkdown](https://github.com/analise-de-dados-ufpb/vis-covid/blob/master/labs/04-seu_relatorio_covid19.Rmd)]
+
+******
+
+### Semana 4
+
+- [Slides 3: O que visualizar? Semântica e tipos de dados](slides/03-o-que-visualizar.html)
