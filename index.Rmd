@@ -48,3 +48,17 @@ As atividades práticas também deverão ser envias por lá.
 ### Semana 4
 
 - [Slides 3: O que visualizar? Semântica e tipos de dados](slides/03-o-que-visualizar.html)
+
+******
+
+### Semana 5
+
+- [Slides 4: Marcas e canais visuais](slides/04-marcas-canais.html)
+
+******
+
+### Semana 6
+
+- [Slides 5: Marcas e canais visuais](slides/05-eda.html)
+
+
