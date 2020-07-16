@@ -59,6 +59,7 @@ As atividades práticas também deverão ser envias por lá.
 
 ### Semana 6
 
-- [Slides 5: Marcas e canais visuais](slides/05-eda.html)
+- [Slides 5: Análise exploratória de dados](slides/05-eda.html)
+- [Lab 5: Sua análise exploratória de dados do e-SUS Notifica](lab/05-analise-exploratoria-esus.html) [[Rmarkdown](lab/05-analise-exploratoria-esus.Rmd), [Dados](data/dados-pb.csv.gz)]
 
 
