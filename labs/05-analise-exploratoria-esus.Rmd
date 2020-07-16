@@ -1,0 +1,126 @@
+---
+title: "Análise Exploratória de Dados do e-SUS"
+author: "Seu nome"
+date: "16/07/2020"
+output:
+  html_document:
+    theme: flatly
+    toc: TRUE
+    toc_float: FALSE
+    toc_depth: 2
+    number_sections: TRUE
+    df_print: paged
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+# instale e adicione outros pacotes que achar necessário
+library(tidyverse)
+library(here)
+library(lubridate)
+library(scales)
+
+# configurações para evitar mostrar mensagens e erros
+knitr::opts_chunk$set(error = FALSE, comment = NA, warning = FALSE, message = FALSE)
+```
+
+# Descrição da atividade
+
+Nesta atividade, você deve fazer uma análise exploratória dos dados do e-SUS Notifica, que possui dados de notificações de suspeitos e confirmados de COVID-19 nos municípios do Brasil.
+
+Com base nas aulas anteriores, crie um novo projeto R para a sua análise, crie um documento Rmarkdown `.Rmd`, copie o código deste documento para iniciar e modifique o conteúdo para adicionar as seções, os textos e as visualizações que desejar. O ideal é que você também crie um repositório no Github para guardar seu código e análises.
+
+Uma análise exploratória é guiada por perguntas, que levam a novas perguntas e assim por diante. Então, é importante informar quais perguntas você está tentando responder a partir de cada gráfico, número ou tabela exibido.
+
+# Carregando os dados
+
+```{r, echo=FALSE}
+esus_pb <- read.csv2(here("data", "dados-pb.csv"), stringsAsFactors = TRUE, 
+                  fileEncoding = "latin1",
+                  na.strings = c("undefined", "", "null")) %>%
+  rename(id = 1) %>%
+  janitor::clean_names() %>%
+  mutate_at(vars(starts_with("data")), as_date)
+```
+
+Visão geral dos dados:
+
+```{r}
+glimpse(esus_pb)
+```
+
+# Atributos para explorar
+
+## Tipos, resultados e estados dos teste
+
+A coluna `resultado_teste` informa se o teste para COVID-19 foi Positivo, Negativo ou _NA_ se ainda não há resultado registrado. Você pode ver a quantidade e percentual de cada um assim:
+
+```{r}
+esus_pb %>%
+  group_by(resultado_teste) %>%
+  summarise(quantidade = n()) %>% # n() aqui vai retornar a quantidade por grupo
+  mutate(percentual = percent(quantidade / sum(quantidade), accuracy = 1))
+```
+
+Observe que aproximadamente metade dos notificados testaram negativo, 25% testaram positivo e os outros 25% não possuem resultado de teste.
+
+Você pode, por exemplo, fazer análises comparativas entre pacientes com resultados positivos e negativos.
+
+A coluna `tipo_teste` indica qual tipo de teste para COVID-19 foi realizado.
+
+A coluna `estado_teste` indica se o teste foi coletado, concluído, solicitado ou não solicitado.
+
+## Idade, sexo, profissão, localidade, comorbidades
+
+A coluna `idade` informa a idade de cada paciente registrado. O que podemos extrair de informações importantes sobre as idades dos pacientes, através de análises e visualizações?
+
+Estatísticas das idades dos pacientes registrados:
+```{r}
+summary(esus_pb$idade)
+```
+
+Podemos gerar um box-plot para visualizar as idades:
+
+```{r}
+ggplot(esus_pb, aes(idade)) +
+  geom_boxplot()
+```
+
+Existem registros incomuns nos dados de idade? Lembre de remover os outliers e explicar como você fez isso ao realizar as análises de idade.
+
+Você também pode definir uma nova categoria com base na faixa de idade, por exemplo analisar crianças (12 anos ou menos) e idosos (60 anos ou mais).
+
+A coluna `sexo` indica se o paciente é do sexo Masculino ou Feminino.
+
+As colunas `cbo` e `profissional_saude` indicam a profissão do paciente e se é da saúde.
+
+Você podem iniciar com perguntas relacionadas à profissão dos pacientes, por exemplo: quais as 10 profissões com mais resultados positivos?
+
+Também existem colunas relativas ao local de residência do paciente (`estado`, `municipio` `bairro`), além do estado e município onde o caso foi notificado. 
+
+A coluna `condicoes` indica as doenças prévias do paciente, que podem ser fator de risco.
+
+## Datas e tempos entre eventos
+
+Existem registros de datas de eventos como `data_notificacao`, `data_inicio_sintomas`, `data_teste`, `data_encerramento`. Com essas datas, você pode calcular a quantidade de dias entre dois eventos. Por exemplo, um dado interessante de analisar é o tempo entre a data de primeiros sintomas e a data de teste:
+
+```{r}
+esus_pb <- esus_pb %>%
+  mutate(tempo_sintomas_teste = as.integer(data_teste - data_inicio_sintomas))
+```
+
+# Perguntas iniciais
+
+Segue algumas perguntas iniciais para sua análise exploratória. A partir delas, você pode ir aprofundando sua análise. Além dessas, você deve levantar suas próprias questões e seguir fazendo levantamento de novas perguntas.
+
+- Que sexo apresentou mais resultados positivos, homens ou mulheres? Qual a proporção de cada um?
+
+- Quais as 5 profissões com mais casos confirmados (resultado de teste positivo)? Quantos casos para elas?
+
+- Quais os 5 municípios com mais casos confirmados (resultado de teste positivo)? Quanto casos para eles?
+
+- Qual a porcentagem de crianças que testaram positivo (menor ou igual a 12 anos)? E a de idoso (maior ou igual a 60 anos)?
+
+- Quanto o tempo médio entre os primeiros sintomas e a data de teste para os diferentes tipos de teste?
+
+- Qual dia teve a maior quantidade de início de sintomas para pacientes com teste positivo?
