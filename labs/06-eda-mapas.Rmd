@@ -1,0 +1,520 @@
+---
+title: "Análise Exploratória de Dados"
+subtitle: "Tendências de crescimento de casos e óbitos nos estados"
+author: "Marcus Carvalho"
+output:
+  html_document:
+    theme: flatly
+    toc: TRUE
+    toc_float: FALSE
+    toc_depth: 2
+    number_sections: FALSE
+    df_print: paged
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(error = FALSE, comment = NA, warning = FALSE,
+                      message = FALSE)
+```
+
+# Objetivo
+
+O objetivo desta atividade é aplicar conceitos de manipulação e visualização de dados para agrupar dados e comparar os diferentes grupos através de visualizações. À medida que as análises são feitas, vamos introduzindo diferentes possibilidades de visualização, destacando as vantagens e desvantagens de cada uma.
+
+Vamos botar a mão na massa! Siga os passos executando o código no RStudio. De preferência, crie um novo documento Rmarkdown para ir adicionando os blocos de código e suas análises.
+
+
+# Carregando pacotes e dados
+
+Carregue os pacotes que serão usados (lembre de instalar os pacotes que vocês ainda não tem, usando o comando `install.packages(array_com_nomes_dos_pacotes)`
+
+```{r load-pkgs}
+library(tidyverse) # conjunto de pacotes que sempre iremos usar
+library(forcats)
+library(geobr)
+library(here) # acesso a arquivos relativos à partir da raíz do projeto
+library(lubridate)
+library(readr)
+library(scales)
+library(sf)
+
+covid_br <- read.csv(here("data", "covid-br-ms-country.csv")) %>%
+  mutate(data = parse_date(data)) %>%
+  janitor::clean_names()
+
+covid_estados <- read.csv(here("data", "covid-br-ms-states.csv")) %>%
+  mutate(data = parse_date(data)) %>%
+  janitor::clean_names()
+
+states_shapes <- read_state(year=2018, showProgress = FALSE)
+```
+
+# Pico de casos e óbitos no Brasil
+
+Para realizar esta análise, vamos primeiro sumarizar os dados por semana, já que os dados diários apresentam muita variação. Vamos usar o `group_by` para agrupar os dados por semana e o `summarise` para sumarizar os dados de acordo com estatísticas. Usaremos a função `max()` para obter o valor máximo na semana para os casos acumulados, `mean()` para calcular a média de casos por dia, `sum()` para calcular o total de casos na semana e `n()` para calcular a quantidade de dados registrados naquela semana (ou seja, a quantidade de dias). O parâmetro `na.rm = TRUE` exclui do cálculo valores não disponíveis (`NA`) que possam estar presentes.
+
+```{r}
+covid_br_semana <- covid_br %>%
+  group_by(regiao, semana_epi) %>%
+  summarise(casos_acumulado = max(casos_acumulado, na.rm = TRUE),
+            casos_novos_media = mean(casos_novos, na.rm = TRUE),
+            casos_novos_total = sum(casos_novos, na.rm = TRUE),
+            obitos_acumulado = max(obitos_acumulado, na.rm = TRUE),
+            obitos_novos_media = mean(obitos_novos, na.rm = TRUE),
+            obitos_novos_total = sum(obitos_novos, na.rm = TRUE),
+            dias = n())
+
+covid_br_semana
+```
+
+Vamos então levantar algumas questões de análise.
+
+## Qual semana epidemiológica registrou o pico de casos novos?
+
+Uma forma simples de fazer essa análise é identificando a semana que apresentou a maior quantidade de casos novos e em seguida filtrar apenas a linha que houver o pico. Primeiro, vamos usar o comando `mutate()` para adicionar uma nova coluna ao nosso data frame, que retorna `TRUE` se aquela semana apresenta o valor máximo (pico) para casos e óbitos novos. Como nós queremos aplicar a função para todas as linhas de uma vez, nós aplicamos o `ungroup()` para remover qualquer agrupamento anterior feito com `group_by()`.
+
+```{r}
+covid_br_semana <- covid_br_semana %>%
+  ungroup() %>%
+  mutate(pico_casos_novos = casos_novos_media == max(casos_novos_media),
+         pico_obitos_novos = obitos_novos_media == max(obitos_novos_media))
+covid_br_semana
+```
+
+Em seguida podemos usar o comando `filter()` para filtrar apenas a semana que houve pico de casos (`pico_casos_novos == TRUE`):
+
+```{r}
+covid_br_semana %>%
+  filter(pico_casos_novos) %>%
+  select(regiao, semana_pico_casos = semana_epi, casos_novos_media)
+```
+
+
+Para ter uma melhor noção comparativa das semanas, nós podemos visualizar os dados destacando a semana de pico.
+Para visualizar o pico de casos novos, nós temos dois atributos:
+- _semana epidemiológica_: ordinal
+- _casos novos total_: quantitativo
+
+Podemos usar um gráfico de barras (`geom_col`) para relacionar as duas variáveis, usando o canal posição para representar a semana (eixo x), o canal tamanho para representar a média de casos novos na semana (eixo y) e o canal de cor para enfatizar as semanas com mais casos. Usamos o comando `scale_fill_viridis_c` para definir a escala de cores de preenchimento das barras usando a paleta [viridis](https://ggplot2.tidyverse.org/reference/scale_viridis.html) para atributos contínuos com ordenação sequencial (`scale_fill_viridis_c`).
+
+```{r}
+ggplot(covid_br_semana, aes(semana_epi, casos_novos_media)) +
+  geom_col(aes(fill = casos_novos_media), show.legend = FALSE) +
+  scale_fill_viridis_c(option = "E") +
+  labs(x = "Semana epidemiológica", y = "Média de casos novos diários")
+```
+
+Note que apesar da semana 27 apresentar o pico, a quantidade de casos da semana 28 foi muito similar. A semana seguinte, 29, já apresenta uma tendência de queda. Apesar da última semana (30) apresentar uma menor média de casos, ela só apresenta dados para 3 dias e o seu valor pode mudar até o fechamento da semana epidemiológica.
+
+## Qual semana epidemiológica registrou o pico de óbitos novos?
+
+Podemos reproduzir a análise anterior para o pico de óbitos. Primeiro, identificando a semana de pico de óbitos:
+
+```{r}
+covid_br_semana %>%
+  filter(pico_obitos_novos) %>%
+  arrange(semana_epi) %>%
+  select(regiao, semana_pico_obitos = semana_epi, obitos_novos_media)
+```
+
+E visualizando a quantidade de casos por semana:
+
+```{r}
+ggplot(covid_br_semana, aes(semana_epi, obitos_novos_media)) +
+  geom_col(aes(fill = obitos_novos_media), show.legend = FALSE) +
+  scale_fill_viridis_c(option = "E") +
+  labs(x = "Semana epidemiológica", y = "Média de óbitos novos diários")
+```
+
+Note que apesar da semana 29 apresentar o pico, as médias de óbitos das semanas 23, 25, 26, 27 e 28 foram próximas, com valores acima de 1000, sugerindo que o Brasil atingiu um platô na quantidade de óbitos, mantendo uma taxa constante. Lembrando que apesar da última semana (30) apresentar uma menor média de óbitos, ainda não podemos concluir que os óbitos estão diminuindo pois ela só apresenta dados para 3 dias e a média pode mudar até o seu fechamento.
+
+# Pico de casos e óbitos nos estados
+
+Nós também podemos fazer uma análise comparativa de pico de casos e óbitos por estado. Primeiro, vamos calcular as estatísticas agrupando os dados por semana e por estado, usando `group_by(estado, semana_epi)`. Para facilitar a análise, vamos filtrar apenas as semanas completas (que tenha registros para 7 dias), usando `filter(dias == 7)`.
+
+```{r}
+# Calcula as estatísticas por semana epidemiológica
+covid_estados_semana <- covid_estados %>%
+  group_by(estado, semana_epi) %>%
+  summarise(casos_acumulado = max(casos_acumulado, na.rm = TRUE),
+            casos_novos_media = mean(casos_novos, na.rm = TRUE),
+            casos_novos_total = sum(casos_novos, na.rm = TRUE),
+            obitos_acumulado = max(obitos_acumulado, na.rm = TRUE),
+            obitos_novos_media = mean(obitos_novos, na.rm = TRUE),
+            obitos_novos_total = sum(obitos_novos, na.rm = TRUE),
+            dias = n())
+  
+# Filtra semanas completas e identifica semana de pico de casos e óbitos
+covid_estados_semana <- covid_estados_semana %>%
+  filter(dias == 7) %>%
+  group_by(estado) %>%
+  mutate(pico_casos_novos = casos_novos_media == max(casos_novos_media),
+         pico_obitos_novos = obitos_novos_media == max(obitos_novos_media))
+```
+
+## Qual semana epidemiológica registrou o pico de casos novos por estado?
+
+Vamos identificar as semanas de pico e exibí-las para cada estado, ordenando da menor para a maior semana de pico com a função `arrange()`.
+
+```{r}
+# Mostra a semana de pico de casos novos para cada estado
+covid_estados_semana %>%
+  filter(pico_casos_novos) %>%
+  arrange(semana_epi) %>%
+  select(semana_pico_casos = semana_epi, casos_novos_media)
+```
+
+Para visualizar os dados de pico por estado, além dos atributos _semana epidemiológica_ e _casos novos_ analisados anteriormente, temos também o atributo _estado_ que é uma variável categórica. Vamos usar o canal de posição vertical para representar o estado, posição horizontal para representar a semana e o canal de cor para representar a quantidade de casos.
+
+```{r}
+ggplot(covid_estados_semana,
+       aes(semana_epi, fct_rev(estado))) +
+  geom_tile(aes(fill = casos_novos_media)) +
+  scale_fill_viridis_c(option = "E") +
+  labs(title = "Média de casos novos por semana por estado",
+       x = "Semana epidemiológica", fill = "") +
+  theme_minimal() +
+  theme(axis.title.y = element_blank())
+```
+
+Um problema que surge é que o estado de SP tem muito mais casos que os outros estados e fez com que as cores para os outros estados ficassem em uma escala difícil de distinguir seus picos. Para resolver este problema, vamos normalizar a quantidade de casos dividindo a média de casos pelo valor máximo registrado para aquele estado. Ou seja, teremos o valor 100% para a semana de pico e 50% se a semana tiver metade dos casos em relação à semana de pico. Como a ideia é identificar os picos, o valor normalizado consegue mostrar isso bem. Vamos também ordenar os estados de acordo com sua semana de pico.
+
+```{r}
+covid_estados_semana <- covid_estados_semana %>%
+  group_by(estado) %>%
+  mutate(
+    casos_novos_norm = casos_novos_media / max(casos_novos_media),
+    obitos_novos_norm = obitos_novos_media / max(obitos_novos_media)
+  )
+
+# Mapa de calor para média de novos casos por estado e semana epidemiológica
+ggplot(covid_estados_semana,
+       aes(semana_epi, fct_reorder(fct_rev(estado), pico_casos_novos, which.max,
+                                   .desc = TRUE))) +
+  geom_tile(aes(fill = casos_novos_norm)) +
+  scale_fill_viridis_c(option = "E", labels = percent) +
+  labs(title = "Casos novos por semana normalizado por estado",
+       x = "Semana epidemiológica", fill = "") +
+  theme_minimal() +
+  theme(axis.title.y = element_blank())
+```
+
+Note que o estado de Pernambuco teve o pico registrado mais cedo que os outros, na semana 21, mas os casos aparentemente voltaram a crescer na semana 28. Os estados de Sergipe, Paraná, Rio Grande do Sul e Santa Catarina tiveram, até agora, os seus picos de casos na última semana (29), que indica uma tendência de aumento de casos na região sul.
+
+## Qual semana epidemiológica registrou o pico de óbitos novos por estado?
+
+Fazendo a mesma análise para óbitos abaixo, temos a semana de pico por estado.
+
+```{r}
+# Mostra a semana de pico de casos novos para cada estado
+covid_estados_semana %>%
+  filter(pico_obitos_novos) %>%
+  arrange(semana_epi) %>%
+  select(semana_pico_obitos = semana_epi, obitos_novos_media)
+```
+
+E o mapa de calor com a quantidade de óbitos normalizada.
+
+```{r}
+# Mapa de calor para média de novos casos por estado e semana epidemiológica
+ggplot(covid_estados_semana,
+       aes(semana_epi, fct_reorder(fct_rev(estado), pico_obitos_novos, which.max,
+                                   .desc = TRUE))) +
+  geom_tile(aes(fill = obitos_novos_norm)) +
+  scale_fill_viridis_c(option = "E", labels = percent) +
+  labs(title = "Óbitos novos por semana normalizado por estado",
+       x = "Semana epidemiológica", fill = "") +
+  theme_minimal() +
+  theme(axis.title.y = element_blank())
+```
+
+Para óbitos, Amazonas teve seu pico registrado mais cedo que os outros, na semana 19. Enquanto DF, GO, MG, MS, MT, PB, PR, RS, SC e SP tiveram seus picos de média de óbitos registrados na última semana (29).
+
+## Qual estado reportou a maior média de casos em uma semana?
+
+Podemos usar o `slice_max(casos_novos_media, 1)` para extrair a linha que possui o maior valor de `casos_novos_media`.
+
+```{r}
+covid_estados_semana %>%
+  ungroup() %>%
+  slice_max(casos_novos_media, 1) %>%
+  select(estado, semana_epi, starts_with("casos_"))
+```
+
+Observamos que o estado de São Paulo apresentou a maior média de casos registrada em uma semana, que teve uma média de 7765 casos novos diários na semana epidemiológica 28.
+
+## Qual estado reportou a maior média de óbitos em uma semana?
+
+Podemos aplicar a mesma função para analisar os óbitos.
+
+```{r}
+covid_estados_semana %>%
+  ungroup() %>%
+  slice_max(obitos_novos_media, 1) %>%
+  select(estado, semana_epi, starts_with("obitos_"))
+```
+
+São Paulo também apresentou a maior média de óbitos registrada em uma semana, tendo uma média de 278 óbitos novos diários na semana epidemiológica 29
+
+
+# Os casos e óbitos estão aumentando ou diminuindo?
+
+Vamos primeiro analisar os dados para todo o Brasil ao longo das semanas epidemiológicas, levantando algumas questões.
+
+## Qual semana epidemiológica apresentou maior crescimento em relação à anterior?
+
+Para saber se os casos estão aumentando ou diminuindo, vamos comparar a quantidade de casos na última semana epidemiológica completa em relação à semana anterior. Para calcular a diferença relativa, vamos calcular `dif_rel = (ultimo_valor - penultimo_valor) / penultimo_valor`. A função `lag()` é usada para pegar o valor anterior ao atual.
+
+```{r}
+covid_br_semana <- covid_br_semana %>%
+  ungroup() %>%
+  mutate(casos_novos_dif = casos_novos_media - lag(casos_novos_media),
+         casos_novos_ratio = casos_novos_media / lag(casos_novos_media),
+         casos_novos_dif_rel = casos_novos_dif / lag(casos_novos_media),
+         obitos_novos_dif = obitos_novos_media - lag(obitos_novos_media),
+         obitos_novos_ratio = obitos_novos_media / lag(obitos_novos_media),
+         obitos_novos_dif_rel = obitos_novos_dif / lag(obitos_novos_media))
+
+covid_br_semana_f <- covid_br_semana %>%
+  filter(semana_epi >= 15, dias == 7)
+
+max_abs_casos_novos_dif_rel <- max(abs(covid_br_semana_f$casos_novos_dif_rel),
+                                   na.rm = TRUE)
+
+
+ggplot(covid_br_semana_f, aes(semana_epi, casos_novos_dif_rel,
+       fill = casos_novos_dif_rel)) +
+  geom_col(col = "gray") +
+  scale_y_continuous(labels = percent) +
+  scale_fill_distiller(
+    palette = "RdYlBu", direction = -1, labels = percent,
+    limits = c(-max_abs_casos_novos_dif_rel, max_abs_casos_novos_dif_rel)) +
+  labs(title = "Diferença de casos entre uma semana e a anterior (%)",
+       fill = "") +
+  theme(axis.title = element_blank()) 
+```
+
+Podemos ver que a semana 18 foi a que teve maior aumento de casos relativo à semana anterior, ultrapassando 70% de aumento. Por outro lado, a última semana (29) apresenta uma tendência de queda em relação à semana anterior.
+
+
+```{r}
+covid_br_semana_f <- covid_br_semana %>%
+  filter(semana_epi >= 15, dias == 7)
+
+max_abs_dif_rel <- max(abs(covid_br_semana_f$obitos_novos_dif_rel),
+                       na.rm = TRUE)
+
+
+ggplot(covid_br_semana_f, aes(semana_epi, obitos_novos_dif_rel,
+       fill = obitos_novos_dif_rel)) +
+  geom_col(col = "gray") +
+  scale_y_continuous(labels = percent) +
+  scale_fill_distiller(
+    palette = "RdYlBu", direction = -1, labels = percent,
+    limits = c(-max_abs_dif_rel, max_abs_dif_rel)) +
+  labs(title = "Diferença de óbitos entre uma semana e a anterior (%)",
+       fill = "") +
+  theme(axis.title = element_blank()) 
+```
+
+Para os óbitos, a semana 15 foi a que teve maior aumento em relação à semana anterior, ultrapassando 110% de aumento. Nota-se também que desde a semana 22 que há uma estabilidade na média de novos casos, próximo a 0% de aumento, o que sugere que o Brasil atingiu um platô na quantidade de novos casos semanais desde a semana 22 até a última registrada (29).
+
+
+## Quais estados estão aumentando e quais estão diminuindo?
+
+Vamos analisar agora a diferença relativa de casos e óbitos entre a última semana (29) e a semana anterior (28) para os estados. Para isso, vamos plotar um gráfico de barras onde o canal de posição vertical representa os estados, a posição horizontal e tamanho das barras representa a diferença relativa entre uma semana e outra para cada estado. O canal de cor também é usado para enfatizar essa diferença.
+
+```{r}
+covid_estados_semana <- covid_estados_semana %>%
+  group_by(estado) %>%
+  mutate(casos_novos_dif = casos_novos_media - lag(casos_novos_media),
+         casos_novos_ratio = casos_novos_media / lag(casos_novos_media),
+         casos_novos_dif_rel = casos_novos_dif / lag(casos_novos_media),
+         obitos_novos_dif = obitos_novos_media - lag(obitos_novos_media),
+         obitos_novos_ratio = obitos_novos_media / lag(obitos_novos_media),
+         obitos_novos_dif_rel = obitos_novos_dif / lag(obitos_novos_media))
+
+covid_estados_semana_f <- covid_estados_semana %>%
+  filter(semana_epi == max(semana_epi))
+
+max_abs_casos_dif <- max(abs(covid_estados_semana_f$casos_novos_dif_rel),
+                       na.rm = TRUE)
+
+ggplot(covid_estados_semana_f, aes(casos_novos_dif_rel,
+           fct_reorder(estado, casos_novos_dif_rel, .desc = TRUE),
+           fill = casos_novos_dif_rel)) +
+  geom_col() +
+  scale_x_continuous(labels = percent) +
+  scale_fill_distiller(palette = "RdYlBu", direction = -1,
+                       labels = percent,
+                       limits = c(-max_abs_casos_dif, max_abs_casos_dif)) +
+  labs(title = "Diferença de casos entre a última semana e a anterior (%)",
+       fill = "") +
+  theme(axis.title = element_blank()) 
+```
+
+Note que o estado do Rio de Janeiro apresentou a maior diminuição, com 40% menos casos na última semana. Já o Amapá apresentou o maior crescimento, com quase 60% mais casos na última semana.
+
+Vamos observar agora o gráfico para óbitos.
+
+```{r}
+max_abs_obitos_dif <- max(abs(covid_estados_semana_f$obitos_novos_dif_rel),
+                       na.rm = TRUE)
+
+ggplot(covid_estados_semana_f, aes(obitos_novos_dif_rel,
+           fct_reorder(estado, obitos_novos_dif_rel, .desc = TRUE),
+           fill = obitos_novos_dif_rel)) +
+  geom_col() +
+  scale_x_continuous(labels = percent) +
+  scale_fill_distiller(palette = "RdYlBu", direction = -1,
+                       labels = percent,
+                       limits = c(-max_abs_obitos_dif, max_abs_obitos_dif)) +
+  labs(title = "Diferença de óbitos entre a última semana e a anterior (%)",
+       fill = "") +
+  theme(axis.title = element_blank()) 
+```
+
+Note que o estado do Santa Catarina apresentou também a maior diminuição de óbitos, com redução de quase 40%. Já Santa Catarina apresentou o maior crescimento de óbitos, com quase aumento de mais de 70% na última semana.
+
+
+# Visualizando em mapas
+
+Algumas visualizações ficam mais legíveis usando mapas, onde a posição geográfica ajuda a identificar localidade (estados, municípios, etc).
+
+## Diferença de casos e óbitos por semana
+
+Vamos mostrar a mesma informação dos gráficos anterior, da diferença relativa de casos e óbitos na última semana, agora em mapa.
+Primeiro para os casos por estado.
+
+```{r}
+covid_estados_semana_f_map <- covid_estados_semana_f %>%
+  left_join(states_shapes, by = c("estado" = "abbrev_state"))
+
+p <- ggplot() +
+  geom_sf(data = covid_estados_semana_f_map,
+          aes(fill = casos_novos_dif_rel,
+              geometry = geom),
+          size = 0.2, col = "gray") +
+  scale_fill_distiller(palette = "RdBu", direction = -1,
+                       labels = percent,
+                       limits = c(-max_abs_casos_dif, max_abs_casos_dif)) +
+  labs(title = "Diferença de casos entre a última semana e a anterior (%)",
+       fill = "") +
+  theme_void()
+p
+```
+
+Note que fica mais fácil identificar padrões em regiões ou encontrar mais rapidamente os estados pela região.
+
+Vamos mostrar agora o mapa para os óbitos.
+
+```{r}
+p <- ggplot() +
+  geom_sf(data = covid_estados_semana_f_map,
+          aes(fill = obitos_novos_dif_rel,
+              geometry = geom),
+          size = 0.2, col = "gray") +
+  scale_fill_distiller(palette = "RdBu", direction = -1,
+                       labels = percent,
+                       limits = c(-max_abs_obitos_dif, max_abs_obitos_dif)) +
+  labs(title = "Diferença de óbitos entre a última semana e a anterior (%)",
+       fill = "") +
+  theme_void()
+p
+```
+
+Outra coisa que podemos observar em mapas é a evolução ao longo do tempo. Para isso, podemos usar `facet_wrap` para mostrar um subgráfico para cada semana epidemiológica. Primeiro para os casos por estado.
+
+```{r}
+covid_estados_atual_map <- covid_estados_semana %>%
+  left_join(states_shapes, by = c("estado" = "abbrev_state")) %>%
+  filter(semana_epi %in% seq(23, 29, 2)) %>%
+  mutate(semana_epi_str = paste("semana", semana_epi))
+
+max_abs_casos_map_dif <- max(abs(covid_estados_atual_map$casos_novos_dif_rel),
+                             na.rm = TRUE)
+  
+p <- ggplot() +
+  geom_sf(data = covid_estados_atual_map,
+          aes(fill = casos_novos_dif_rel, geometry = geom),
+          size = 0.1, col = "gray") +
+  scale_fill_distiller(
+    palette = "RdBu", direction = -1,
+    labels = percent,
+    limits = c(-max_abs_casos_map_dif, max_abs_casos_map_dif),
+    breaks = c(-2, 0, 2)) +
+  labs(title = "Diferença de casos entre uma semana e a anterior (%)",
+       fill = "") +
+  facet_wrap(~ semana_epi_str, nrow = 1) +
+  theme_void() +
+  theme(legend.position = "bottom")
+p
+```
+
+Agora para  óbitos.
+
+```{r}
+max_abs_obitos_map_dif <- max(abs(covid_estados_atual_map$casos_novos_dif_rel),
+                             na.rm = TRUE)
+  
+p <- ggplot() +
+  geom_sf(data = covid_estados_atual_map,
+          aes(fill = obitos_novos_dif_rel, geometry = geom),
+          size = 0.1, col = "gray") +
+  scale_fill_distiller(
+    palette = "RdBu", direction = -1,
+    labels = percent,
+    limits = c(-max_abs_obitos_map_dif, max_abs_obitos_map_dif),
+    breaks = c(-2, 0, 2)) +
+  labs(title = "Diferença de óbitos entre uma semana e a anterior (%)",
+       fill = "") +
+  facet_wrap(~ semana_epi_str, nrow = 1) +
+  theme_void() +
+  theme(legend.position = "bottom")
+p
+```
+
+## Semana de pico por estado
+
+Também podemos visualizar os dados de casos relativos ao pico em cada estado através de mapas.
+Primeiro vamos observar os casos. Note que os estados do Norte tiveram seus picos mais cedo e agora o estados mais ao sul que estão nos seus picos.
+
+```{r}
+covid_estados_atual_map <- covid_estados_semana %>%
+  left_join(states_shapes, by = c("estado" = "abbrev_state")) %>%
+  filter(semana_epi %in% seq(23, 29, 2)) %>%
+  mutate(semana_epi_str = paste("semana", semana_epi))
+
+p <- ggplot() +
+  geom_sf(data = covid_estados_atual_map,
+          aes(fill = casos_novos_norm, geometry = geom),
+          size = 0.1, col = "white") +
+  scale_fill_distiller(palette = "Reds", direction = 1, labels = percent,
+                       limits = c(0, 1)) +
+  labs(title = "Casos novos por semana normalizado por estado",
+       fill = "") +
+  facet_wrap(~ semana_epi_str, nrow = 1) +
+  theme_void() +
+  theme(legend.position = "bottom")
+p
+```
+
+Observando agora os óbitos:
+
+```{r}
+p <- ggplot() +
+  geom_sf(data = covid_estados_atual_map,
+          aes(fill = obitos_novos_norm, geometry = geom),
+          size = 0.1, col = "white") +
+  scale_fill_distiller(palette = "Reds", direction = 1, labels = percent,
+                       limits = c(0, 1)) +
+  labs(title = "Óbitos novos por semana normalizado por estado",
+       fill = "") +
+  facet_wrap(~ semana_epi_str, nrow = 1) +
+  theme_void() +
+  theme(legend.position = "bottom")
+p
+```
+
+Notamos uma tendência ainda mais forte da maioria dos estados do norte terem passado seus picos e das demais regiões ainda estarem muitos próximos a ele.
