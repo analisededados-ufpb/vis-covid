@@ -61,3 +61,9 @@ As atividades práticas também deverão ser envias por lá.
 
 - [Slides 5: Análise exploratória de dados](slides/05-eda.html)
 - [Lab 5: Sua análise exploratória de dados do e-SUS Notifica](labs/05-analise-exploratoria-esus.html) [[Rmarkdown](labs/05-analise-exploratoria-esus.Rmd), [Dados](data/dados-pb.csv.gz)]
+
+******
+
+### Semana 7
+
+- [Lab 6: EDA, comparações e mapas](labs/06-eda-mapas.html) [[Rmarkdown](labs/06-eda-mapas.Rmd)]
