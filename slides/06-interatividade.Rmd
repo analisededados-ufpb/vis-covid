@@ -1,0 +1,203 @@
+---
+title: "Interatividade"
+subtitle: "Análise e visualização de dados da COVID-19"
+author: "Prof. Marcus Carvalho e Prof. Raquel Lopes - DCX / CCAE / UFPB"
+output:
+  ioslides_presentation:
+    widescreen: true
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = FALSE)
+
+library(dplyr)
+library(geobr)
+library(forcats)
+library(here)
+library(lubridate)
+library(ggplot2)
+library(plotly)
+library(readr)
+library(scales)
+library(zoo)
+```
+
+```{r load-data, include=FALSE}
+covid_br <- read.csv(here("data", "covid-br-ms-country.csv")) %>%
+  mutate(data = parse_date(data)) %>%
+  janitor::clean_names()
+
+covid_estados <- read.csv(here("data", "covid-br-ms-states.csv")) %>%
+  mutate(data = parse_date(data)) %>%
+  janitor::clean_names() %>%
+  arrange(data) %>%
+  group_by(estado) %>%
+  mutate(casos_novos_media = rollmean(casos_novos, 7, align = "right", fill = NA),
+         obitos_novos_media = rollmean(obitos_novos, 7, align = "right", fill = NA))
+
+covid_regiao <- covid_estados %>%
+  group_by(regiao, data) %>%
+  summarise(casos_acumulado = sum(casos_acumulado, na.rm = TRUE),
+            casos_novos = sum(casos_novos, na.rm = TRUE),
+            obitos_acumulado = sum(obitos_acumulado, na.rm = TRUE),
+            obitos_novos = mean(obitos_novos, na.rm = TRUE))
+
+covid_br_semana <- covid_br %>%
+  group_by(regiao, semana = semana_epi) %>%
+  summarise(data_inicio_semana = first(data),
+            casos_acumulado = max(casos_acumulado, na.rm = TRUE),
+            casos_novos_media = mean(casos_novos, na.rm = TRUE),
+            casos_novos_total = sum(casos_novos, na.rm = TRUE),
+            obitos_acumulado = max(obitos_acumulado, na.rm = TRUE),
+            obitos_novos_media = mean(obitos_novos, na.rm = TRUE),
+            obitos_novos_total = sum(obitos_novos, na.rm = TRUE),
+            dias = n())
+
+shapes_estados <- read_state(year=2018, showProgress = FALSE)
+```
+
+
+## Construindo gráficos interativos
+
+Três métodos gerais para fazer no R:
+
+- Plots específicos com a biblioteca **plotly** (fácil)
+- Dashboards com a biblioteca **flexdashboard** (médio)
+- Aplicações completas interativas com **Shiny** (difícil)
+
+## Criando gráficos com o plotly
+
+**Plotly**: ferramenta para criação de gráficos interativos com JavaScript
+
+  - Biblioteca `plotly` para R permite usá-la sem conhecimento de JavaScript
+  - Comando `ggplotly()` transforma gráfico ggplot em JavaScript
+  
+## Exemplo plotly - Novos casos no Brasil
+
+```{r, fig.width=8, fig.height=4.5}
+p <- ggplot(covid_br, aes(data, casos_novos)) + geom_col()
+ggplotly(p)
+```
+
+## Novos casos por região
+
+```{r, fig.width=8, fig.height=4.5}
+p <- ggplot(covid_regiao, aes(data, casos_novos, fill = regiao)) + geom_col()
+ggplotly(p)
+```
+
+## Novos casos por região - tooltip
+
+```{r, fig.width=8, fig.height=4}
+p <- ggplot(covid_regiao, aes(data, casos_novos, fill = regiao,
+                              text = paste0(regiao, ": ", casos_novos, " casos"))) +
+  geom_col()
+ggplotly(p, tooltip = c("text"))
+```
+
+## Média móvel de novos casos por estado
+
+```{r, warning=FALSE, echo=FALSE, fig.height=5.5, fig.width=9}
+p <- ggplot(covid_estados, aes(data, casos_novos_media, col = estado, group = estado,
+             text = paste0(estado, ": ", round(casos_novos_media)))) +
+  geom_line() +
+  scale_y_log10() 
+ggplotly(p, tooltip = "text")
+```
+
+## Plotly com Mapas
+
+```{r, echo=FALSE}
+covid_estados_mapa <- covid_estados %>%
+  left_join(shapes_estados, by = c("estado" = "abbrev_state")) %>%
+  mutate(
+    obitos_novos_media_dif = obitos_novos_media - lag(obitos_novos_media, 14),
+    obitos_novos_media_dif_rel = obitos_novos_media_dif / lag(obitos_novos_media, 14)
+  )
+  
+covid_estados_mapa_f <- covid_estados_mapa %>%
+  filter(data == max(data))
+
+max_abs_dif <- max(abs(covid_estados_mapa_f$obitos_novos_media_dif_rel),
+                   na.rm = TRUE)
+
+p <- ggplot(covid_estados_mapa_f,
+            aes(fill = obitos_novos_media_dif_rel,
+            text = paste0(estado, ": ", percent(obitos_novos_media_dif_rel, 1)))) +
+  geom_sf(aes(geometry = geom), size = 0.2, col = "gray") +
+  scale_fill_distiller(palette = "RdYlBu", direction = -1, labels = percent,
+                       limits = c(-max_abs_dif, max_abs_dif)) +
+  labs(title = "Diferença da média móvel de óbitos entre as duas últimas semana (%)",
+       fill = "") +
+  ggthemes::theme_map()
+
+ggplotly(p, tooltip = "text") %>%
+  style(hoveron = "fill")
+```
+
+## Plotly - Animação com mapa
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+change_levels <- c("redução (<= -15%)", "estável", "crescimento (>= 15%)", "crescimento forte (>= 50%)")
+
+covid_estados_mapa_f <- covid_estados_mapa %>%
+  filter(data >= max(data) - 15) %>%
+  ungroup() %>%
+  mutate(change = factor(case_when(
+    obitos_novos_media_dif_rel >= 0.5 ~ change_levels[4],
+    obitos_novos_media_dif_rel >= 0.15 ~ change_levels[3],
+    obitos_novos_media_dif_rel <= -0.15 ~ change_levels[1],
+    TRUE ~ change_levels[2]), levels = change_levels)
+  )
+
+max_abs_dif <- max(abs(covid_estados_mapa_f$obitos_novos_media_dif_rel), 2,
+                   na.rm = TRUE)
+
+p <- (ggplot(covid_estados_mapa_f) +
+  geom_sf(aes(fill = change, frame = data, geometry = geom,
+            text = paste0(estado, ": ", percent(obitos_novos_media_dif_rel, 1))),
+          size = 0.2) +
+  scale_fill_manual(values = brewer_pal(palette = "RdYlBu", direction = -1)(5)[2:5]) +
+  labs(title = "Diferença da média móvel de óbitos entre as duas últimas semanas (%)",
+       fill = "") +
+  ggthemes::theme_map()) %>%
+  ggplotly(tooltip = "text") %>%
+  style(hoveron = "text") %>%
+  animation_opts(frame = 1000, transition = 0)
+
+p
+```
+
+## Plotly: animação com barras
+
+```{r, warning=FALSE, echo=FALSE, fig.height=5.5, fig.width=9}
+covid_estados_f <- covid_estados %>%
+  filter(data >= max(data) - 60) %>%
+  mutate(data = factor(data))
+
+p <- covid_estados_f %>%
+  ggplot() +
+  geom_col(aes(casos_novos_media, estado, frame = data, fill = regiao),
+           position = "identity", show.legend = FALSE) +
+  scale_fill_brewer(palette = "Set1") +
+  labs(y = "média de casos novos")
+#p
+ggplotly(p)
+```
+
+## Outras opções de gráficos interativos
+
+Gráficos dinâmicos:
+
+- [Plotly](https://plotly.com/r): você pode plotar direto, sem o `ggplot`, usando a função `plot_ly()`
+- [Highcharter](https://jkunst.com/highcharter): pacote R para a biblioteca [Highcharts](https://www.highcharts.com) em JavaScript
+
+Animações:
+
+- [gganimate](https://gganimate.com/): animação de gráficos ggplot2
+
+
+## Referências:
+
+- Andrew Heiss. Data Visualization Course, Interactivity. Disponível em: https://datavizm20.classes.andrewheiss.com/content/10-content/
