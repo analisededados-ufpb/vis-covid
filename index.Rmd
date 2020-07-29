@@ -67,3 +67,9 @@ As atividades práticas também deverão ser envias por lá.
 ### Semana 7
 
 - [Lab 6: EDA, comparações e mapas](labs/06-eda-mapas.html) [[Rmarkdown](labs/06-eda-mapas.Rmd)]
+
+******
+
+### Semana 8
+
+- [Slides 6: Interatividade](slides/06-interatividade.html) [[Rmarkdown](slides/06-interatividade.Rmd)]
