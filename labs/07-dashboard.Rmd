@@ -1,0 +1,476 @@
+---
+title: "vis-covid dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: scroll
+    theme: default
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(DT)
+library(flexdashboard)
+library(ggplot2)
+library(here)
+library(plotly)
+library(readr)
+library(scales)
+
+theme_set(theme_minimal())
+casos_col <- "#1DA584"
+obitos_col <- "#9A36BB"
+```
+
+Brasil
+===============================
+
+```{r data br, include=FALSE}
+covid_data <- read_csv(here("data", "covid-br-ms-country.csv"),
+                     col_types = cols()) %>%
+  janitor::clean_names() %>%
+  mutate(incidencia_100k = 100000 * casos_acumulado / populacao_tcu2019,
+         mortalidade_100k = 100000 * obitos_acumulado / populacao_tcu2019,
+         letalidade = obitos_acumulado / casos_acumulado)
+
+covid_semana <- covid_data %>%
+  group_by(regiao, semana_epi) %>%
+  summarise(casos_acumulado = max(casos_acumulado, na.rm = TRUE),
+            casos_novos = sum(casos_novos, na.rm = TRUE),
+            obitos_acumulado = max(obitos_acumulado, na.rm = TRUE),
+            obitos_novos = sum(obitos_novos, na.rm = TRUE))
+
+covid_atual <- covid_data %>%
+  filter(data == max(data))
+```
+
+
+Row
+-----------------------------------------------------------------------
+
+### Casos confirmados
+
+```{r}
+valueBox(number(covid_atual$casos_acumulado, big.mark = ".", decimal.mark = ","),
+         color = casos_col)
+```
+
+### Casos novos
+
+```{r}
+valueBox(number(covid_atual$casos_novos, big.mark = ".", decimal.mark = ","),
+         color = casos_col)
+```
+
+### Óbitos confirmados
+
+```{r}
+valueBox(number(covid_atual$obitos_acumulado, big.mark = ".", decimal.mark = ","),
+         color = obitos_col)
+```
+
+### Óbitos novos
+
+```{r}
+valueBox(number(covid_atual$obitos_novos, big.mark = ".", decimal.mark = ","),
+         color = obitos_col)
+```
+
+Row
+-----------------------------------------------------------------------
+
+
+### Incidência / 100 mil hab.
+
+```{r}
+incidencia <- with(covid_atual, 100000 * casos_acumulado / populacao_tcu2019)
+gauge(incidencia, min = 0, max = 100000, symbol = '', gaugeSectors(
+  success = c(0, 39), warning = c(40, 79), danger = c(80, 100)
+))
+```
+
+### Letalidade
+
+```{r}
+letalidade <- with(covid_atual, round(100 * obitos_acumulado / casos_acumulado,
+                    digits = 1))
+gauge(letalidade, min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(0, 39), warning = c(40, 79), danger = c(80, 100)
+))
+```
+
+### Mortalidade / 100 mil hab.
+
+```{r}
+mortalidade <- with(covid_atual,
+                    round(100000 * obitos_acumulado / populacao_tcu2019,
+                          digits = 1))
+gauge(mortalidade, min = 0, max = 100000, symbol = '', gaugeSectors(
+  success = c(0, 39), warning = c(40, 79), danger = c(80, 100)
+))
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Casos novos de COVID-19 por data de notificação
+
+```{r}
+p <- ggplot(covid_data, aes(data, casos_novos)) +
+  geom_col(fill = casos_col, col = "white") +
+  scale_x_date(date_breaks = "week", date_labels = "%d/%m") +
+  scale_y_continuous(labels = label_number(decimal.mark = ",", big.mark = ".")) +
+  labs(x = "Data da notificação", y = "Casos novos") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplotly(p)
+```
+
+### Casos novos de COVID-19 por Semana Epidemiológica de notificação
+
+```{r}
+p <- ggplot(covid_semana, aes(semana_epi, casos_novos)) +
+  geom_col(fill = casos_col, col = "white") +
+  scale_x_continuous(breaks = seq_len(max(covid_semana$semana_epi))) +
+  scale_y_continuous(labels = label_number(decimal.mark = ",", big.mark = ".")) +
+  labs(x = "Semana Epidemiológica", y = "Casos novos")
+ggplotly(p)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Casos acumulados de COVID-19 por data de notificação
+
+```{r}
+p <- ggplot(covid_data, aes(data, casos_acumulado)) +
+  geom_point(col = casos_col) +
+  geom_line(col = casos_col) +
+  geom_area(fill = casos_col, alpha = 0.05) +
+  scale_x_date(date_breaks = "week", date_labels = "%d/%m") +
+  scale_y_continuous(labels = label_number(decimal.mark = ",", big.mark = ".")) +
+  labs(x = "Data da notificação", y = "Casos acumulados") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplotly(p)
+```
+
+### Casos acumulados de COVID-19 por Semana Epidemiológica de notificação
+
+```{r}
+p <- ggplot(covid_semana, aes(semana_epi, casos_acumulado)) +
+  geom_point(col = casos_col) +
+  geom_line(col = casos_col) +
+  geom_area(fill = casos_col, alpha = 0.05) +
+  scale_x_continuous(breaks = seq_len(max(covid_semana$semana_epi))) +
+  scale_y_continuous(labels = label_number(decimal.mark = ",", big.mark = ".")) +
+  labs(x = "Semana Epidemiológica", y = "Casos acumulados")
+ggplotly(p)
+```
+
+
+Row
+-----------------------------------------------------------------------
+
+### Óbitos novos de COVID-19 por data de notificação
+
+```{r}
+p <- ggplot(covid_data, aes(data, obitos_novos)) +
+  geom_col(fill = obitos_col, col = "white") +
+  scale_x_date(date_breaks = "week", date_labels = "%d/%m") +
+  scale_y_continuous(labels = label_number(decimal.mark = ",", big.mark = ".")) +
+  labs(x = "Data da notificação", y = "Óbitos novos") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplotly(p)
+```
+
+### Óbitos novos de COVID-19 por Semana Epidemiológica de notificação
+
+```{r}
+p <- ggplot(covid_semana, aes(semana_epi, obitos_novos)) +
+  geom_col(fill = obitos_col, col = "white") +
+  scale_x_continuous(breaks = seq_len(max(covid_semana$semana_epi))) +
+  scale_y_continuous(labels = label_number(decimal.mark = ",", big.mark = ".")) +
+  labs(x = "Semana Epidemiológica", y = "Óbitos novos")
+ggplotly(p)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Óbitos acumulados de COVID-19 por data de notificação
+
+```{r}
+p <- ggplot(covid_data, aes(data, obitos_acumulado)) +
+  geom_point(col = obitos_col) +
+  geom_line(col = obitos_col) +
+  geom_area(fill = obitos_col, alpha = 0.05) +
+  scale_x_date(date_breaks = "week", date_labels = "%d/%m") +
+  scale_y_continuous(labels = label_number(decimal.mark = ",", big.mark = ".")) +
+  labs(x = "Data da notificação", y = "Óbitos acumulados") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplotly(p)
+```
+
+### Óbitos acumulados de COVID-19 por Semana Epidemiológica de notificação
+
+```{r}
+p <- ggplot(covid_semana, aes(semana_epi, casos_acumulado)) +
+  geom_point(col = obitos_col) +
+  geom_line(col = obitos_col) +
+  geom_area(fill = obitos_col, alpha = 0.05) +
+  scale_x_continuous(breaks = seq_len(max(covid_semana$semana_epi))) +
+  scale_y_continuous(labels = label_number(decimal.mark = ",", big.mark = ".")) +
+  labs(x = "Semana Epidemiológica", y = "Óbitos acumulados")
+ggplotly(p)
+```
+
+
+Row
+------------------------------------------------------
+
+### Tabela de casos, óbitos, incidência e mortalidade
+
+```{r}
+covid_data %>%
+  arrange(desc(data)) %>%
+  transmute(`Região` = regiao,
+            `Data` = data,
+            `Semana Epi.` = semana_epi,
+            `Casos Acumulados` = casos_acumulado,
+            `Casos Novos` = casos_novos,
+            `Óbitos Acumulados` = obitos_acumulado,
+            `Óbitos Novos` = obitos_novos,
+            `Incidência / 100k` = incidencia_100k,
+            `Mortalidade / 100k` = mortalidade_100k,
+            `Letalidade` = letalidade) %>%
+  DT::datatable(rownames = FALSE) %>%
+  formatPercentage("Letalidade", digits = 1) %>%
+  formatRound(c("Incidência / 100k", "Mortalidade / 100k"),
+              digits = 1, mark = "")
+```
+
+
+Paraíba
+===============================
+
+```{r data pb, include=FALSE}
+covid_data <- read_csv(here("data", "covid-br-ms-states.csv"),
+                     col_types = cols()) %>%
+  filter(estado == "PB") %>%
+  janitor::clean_names() %>%
+  mutate(incidencia_100k = 100000 * casos_acumulado / populacao_tcu2019,
+         mortalidade_100k = 100000 * obitos_acumulado / populacao_tcu2019,
+         letalidade = obitos_acumulado / casos_acumulado)
+
+covid_semana <- covid_data %>%
+  group_by(regiao, semana_epi) %>%
+  summarise(casos_acumulado = max(casos_acumulado, na.rm = TRUE),
+            casos_novos = sum(casos_novos, na.rm = TRUE),
+            obitos_acumulado = max(obitos_acumulado, na.rm = TRUE),
+            obitos_novos = sum(obitos_novos, na.rm = TRUE))
+
+covid_atual <- covid_data %>%
+  filter(data == max(data))
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Casos confirmados
+
+```{r}
+valueBox(number(covid_atual$casos_acumulado, big.mark = ".", decimal.mark = ","),
+         color = casos_col)
+```
+
+### Casos novos
+
+```{r}
+valueBox(number(covid_atual$casos_novos, big.mark = ".", decimal.mark = ","),
+         color = casos_col)
+```
+
+### Óbitos confirmados
+
+```{r}
+valueBox(number(covid_atual$obitos_acumulado, big.mark = ".", decimal.mark = ","),
+         color = obitos_col)
+```
+
+### Óbitos novos
+
+```{r}
+valueBox(number(covid_atual$obitos_novos, big.mark = ".", decimal.mark = ","),
+         color = obitos_col)
+```
+
+Row
+-----------------------------------------------------------------------
+
+
+### Incidência / 100 mil hab.
+
+```{r}
+incidencia <- with(covid_atual, 100000 * casos_acumulado / populacao_tcu2019)
+gauge(incidencia, min = 0, max = 100000, symbol = '', gaugeSectors(
+  success = c(0, 39), warning = c(40, 79), danger = c(80, 100)
+))
+```
+
+### Letalidade
+
+```{r}
+letalidade <- with(covid_atual, round(100 * obitos_acumulado / casos_acumulado,
+                    digits = 1))
+gauge(letalidade, min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(0, 39), warning = c(40, 79), danger = c(80, 100)
+))
+```
+
+### Mortalidade / 100 mil hab.
+
+```{r}
+mortalidade <- with(covid_atual,
+                    round(100000 * obitos_acumulado / populacao_tcu2019,
+                          digits = 1))
+gauge(mortalidade, min = 0, max = 100000, symbol = '', gaugeSectors(
+  success = c(0, 39), warning = c(40, 79), danger = c(80, 100)
+))
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Casos novos de COVID-19 por data de notificação
+
+```{r}
+p <- ggplot(covid_data, aes(data, casos_novos)) +
+  geom_col(fill = casos_col, col = "white") +
+  scale_x_date(date_breaks = "week", date_labels = "%d/%m") +
+  scale_y_continuous(labels = label_number(decimal.mark = ",", big.mark = ".")) +
+  labs(x = "Data da notificação", y = "Casos novos") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplotly(p)
+```
+
+### Casos novos de COVID-19 por Semana Epidemiológica de notificação
+
+```{r}
+p <- ggplot(covid_semana, aes(semana_epi, casos_novos)) +
+  geom_col(fill = casos_col, col = "white") +
+  scale_x_continuous(breaks = seq_len(max(covid_semana$semana_epi))) +
+  scale_y_continuous(labels = label_number(decimal.mark = ",", big.mark = ".")) +
+  labs(x = "Semana Epidemiológica", y = "Casos novos")
+ggplotly(p)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Casos acumulados de COVID-19 por data de notificação
+
+```{r}
+p <- ggplot(covid_data, aes(data, casos_acumulado)) +
+  geom_point(col = casos_col) +
+  geom_line(col = casos_col) +
+  geom_area(fill = casos_col, alpha = 0.05) +
+  scale_x_date(date_breaks = "week", date_labels = "%d/%m") +
+  scale_y_continuous(labels = label_number(decimal.mark = ",", big.mark = ".")) +
+  labs(x = "Data da notificação", y = "Casos acumulados") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplotly(p)
+```
+
+### Casos acumulados de COVID-19 por Semana Epidemiológica de notificação
+
+```{r}
+p <- ggplot(covid_semana, aes(semana_epi, casos_acumulado)) +
+  geom_point(col = casos_col) +
+  geom_line(col = casos_col) +
+  geom_area(fill = casos_col, alpha = 0.05) +
+  scale_x_continuous(breaks = seq_len(max(covid_semana$semana_epi))) +
+  scale_y_continuous(labels = label_number(decimal.mark = ",", big.mark = ".")) +
+  labs(x = "Semana Epidemiológica", y = "Casos acumulados")
+ggplotly(p)
+```
+
+
+Row
+-----------------------------------------------------------------------
+
+### Óbitos novos de COVID-19 por data de notificação
+
+```{r}
+p <- ggplot(covid_data, aes(data, obitos_novos)) +
+  geom_col(fill = obitos_col, col = "white") +
+  scale_x_date(date_breaks = "week", date_labels = "%d/%m") +
+  scale_y_continuous(labels = label_number(decimal.mark = ",", big.mark = ".")) +
+  labs(x = "Data da notificação", y = "Óbitos novos") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplotly(p)
+```
+
+### Óbitos novos de COVID-19 por Semana Epidemiológica de notificação
+
+```{r}
+p <- ggplot(covid_semana, aes(semana_epi, obitos_novos)) +
+  geom_col(fill = obitos_col, col = "white") +
+  scale_x_continuous(breaks = seq_len(max(covid_semana$semana_epi))) +
+  scale_y_continuous(labels = label_number(decimal.mark = ",", big.mark = ".")) +
+  labs(x = "Semana Epidemiológica", y = "Óbitos novos")
+ggplotly(p)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Óbitos acumulados de COVID-19 por data de notificação
+
+```{r}
+p <- ggplot(covid_data, aes(data, obitos_acumulado)) +
+  geom_point(col = obitos_col) +
+  geom_line(col = obitos_col) +
+  geom_area(fill = obitos_col, alpha = 0.05) +
+  scale_x_date(date_breaks = "week", date_labels = "%d/%m") +
+  scale_y_continuous(labels = label_number(decimal.mark = ",", big.mark = ".")) +
+  labs(x = "Data da notificação", y = "Óbitos acumulados") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplotly(p)
+```
+
+### Óbitos acumulados de COVID-19 por Semana Epidemiológica de notificação
+
+```{r}
+p <- ggplot(covid_semana, aes(semana_epi, casos_acumulado)) +
+  geom_point(col = obitos_col) +
+  geom_line(col = obitos_col) +
+  geom_area(fill = obitos_col, alpha = 0.05) +
+  scale_x_continuous(breaks = seq_len(max(covid_semana$semana_epi))) +
+  scale_y_continuous(labels = label_number(decimal.mark = ",", big.mark = ".")) +
+  labs(x = "Semana Epidemiológica", y = "Óbitos acumulados")
+ggplotly(p)
+```
+
+
+Row
+------------------------------------------------------
+
+### Tabela de casos, óbitos, incidência e mortalidade
+
+```{r}
+covid_data %>%
+  arrange(desc(data)) %>%
+  transmute(`Região` = regiao,
+            `Data` = data,
+            `Semana Epi.` = semana_epi,
+            `Casos Acumulados` = casos_acumulado,
+            `Casos Novos` = casos_novos,
+            `Óbitos Acumulados` = obitos_acumulado,
+            `Óbitos Novos` = obitos_novos,
+            `Incidência / 100k` = incidencia_100k,
+            `Mortalidade / 100k` = mortalidade_100k,
+            `Letalidade` = letalidade) %>%
+  DT::datatable(rownames = FALSE) %>%
+  formatPercentage("Letalidade", digits = 1) %>%
+  formatRound(c("Incidência / 100k", "Mortalidade / 100k"),
+              digits = 1, mark = "")
+```
