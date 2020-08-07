@@ -74,7 +74,9 @@ As atividades práticas também deverão ser envias por lá.
 
 - [Slides 6: Interatividade](slides/06-interatividade.html) [[Rmarkdown](slides/06-interatividade.Rmd)]
 
+******
+
 ### Semana 9
 
-- [Interatividade: Flexdashboard](labs/07-dashboard.html) [[Rmarkdown](labs/07-dashboard.Rmd)]
-- [Interatividade: Shiny](https://marcuswac.shinyapps.io/vis-covid-shiny/) [[Rmarkdown](https://raw.githubusercontent.com/analise-de-dados-ufpb/vis-covid-shiny/master/vis-covid-shiny.Rmd)]
+- [Lab 7: Interatividade: Flexdashboard](labs/07-dashboard.html) [[Rmarkdown](labs/07-dashboard.Rmd)]
+- [Lab 8: Interatividade: Shiny](https://marcuswac.shinyapps.io/vis-covid-shiny/) [[Rmarkdown](https://raw.githubusercontent.com/analise-de-dados-ufpb/vis-covid-shiny/master/vis-covid-shiny.Rmd)]
